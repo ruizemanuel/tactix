@@ -38,6 +38,9 @@ export function validateMap(map: GameMap): GameMap {
     if (!continentIds.has(t.continentId)) {
       throw new Error(`Territory ${t.id} references unknown continent ${t.continentId}`);
     }
+    if (new Set(t.adjacentTo).size !== t.adjacentTo.length) {
+      throw new Error(`Territory ${t.id} has duplicate adjacency`);
+    }
     for (const adj of t.adjacentTo) {
       if (!territoryIds.has(adj)) {
         throw new Error(`Territory ${t.id} adjacent to unknown ${adj}`);
@@ -48,8 +51,11 @@ export function validateMap(map: GameMap): GameMap {
 
   const claimed = new Set<string>();
   for (const c of map.continents) {
+    const seenInContinent = new Set<string>();
     for (const tid of c.territoryIds) {
       if (!territoryIds.has(tid)) throw new Error(`Continent ${c.id} references unknown ${tid}`);
+      if (seenInContinent.has(tid)) throw new Error(`Continent ${c.id} lists territory ${tid} twice`);
+      seenInContinent.add(tid);
       if (claimed.has(tid)) throw new Error(`Territory ${tid} claimed by two continents`);
       claimed.add(tid);
     }

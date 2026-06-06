@@ -20,8 +20,8 @@ describe("validateMap", () => {
 
   test("rejects a disconnected graph", () => {
     const broken = clone(fixtureMap);
-    broken.territories[5]!.adjacentTo = ["s1", "s2"];
-    broken.territories[6]!.adjacentTo = ["i2"];
+    broken.territories[5]!.adjacentTo = ["s1", "s2"]; // s3: drop bridge to i1
+    broken.territories[6]!.adjacentTo = ["i2"]; // i1: drop bridge to s3 → islands isolated
     expect(() => validateMap(broken)).toThrow(/connected/);
   });
 
@@ -29,5 +29,11 @@ describe("validateMap", () => {
     const broken = clone(fixtureMap);
     broken.continents[0]!.territoryIds = ["n1", "n2", "n3", "s1"];
     expect(() => validateMap(broken)).toThrow(/two continents/);
+  });
+
+  test("rejects duplicate adjacency entries", () => {
+    const broken = clone(fixtureMap);
+    broken.territories[0]!.adjacentTo = ["n2", "n2", "n3"]; // n1 lists n2 twice
+    expect(() => validateMap(broken)).toThrow(/duplicate adjacency/);
   });
 });
