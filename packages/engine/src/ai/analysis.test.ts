@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { borderTerritories, bestReinforceTarget, findTradeableSet, bestAttack } from "./analysis.js";
+import { borderTerritories, bestReinforceTarget, findTradeableSet, bestAttack, bestFortify } from "./analysis.js";
 import { fixtureMap } from "../map/fixture.js";
 import type { Card, GameState, Objective, TurnPhase } from "../types.js";
 
@@ -106,5 +106,23 @@ describe("bestAttack", () => {
     ];
     const s = makeState({ n3: { owner: "A", armies: 5 } }, { objectives, objByPlayer: { A: "oa", B: "ob" } });
     expect(bestAttack(s, "A")).toEqual({ from: "n3", to: "s1" });
+  });
+});
+
+describe("bestFortify", () => {
+  test("moves armies from a safe interior territory to an adjacent frontier", () => {
+    // n1 (4, interior — neighbors n2,n3 both A) is adjacent to n3 (frontier — touches enemy s1).
+    const s = makeState({
+      n1: { owner: "A", armies: 4 },
+      n2: { owner: "A", armies: 1 },
+      n3: { owner: "A", armies: 2 },
+    });
+    expect(bestFortify(s, "A")).toEqual({ from: "n1", to: "n3", armies: 3 });
+  });
+
+  test("returns null when the player has no safe interior to drain", () => {
+    // A owns only n3, which is itself a frontier.
+    const s = makeState({ n3: { owner: "A", armies: 5 } });
+    expect(bestFortify(s, "A")).toBeNull();
   });
 });

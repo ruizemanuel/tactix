@@ -47,6 +47,28 @@ export function findTradeableSet(cards: Card[]): string[] | null {
   return null;
 }
 
+/**
+ * Move the garrison of a safe interior territory (no enemy neighbor, >=2 armies)
+ * forward into an adjacent owned frontier territory, leaving 1 behind. Null if
+ * there is no such interior→frontier move. Deterministic (first match).
+ */
+export function bestFortify(
+  state: GameState,
+  me: PlayerId,
+): { from: string; to: string; armies: number } | null {
+  const borders = new Set(borderTerritories(state, me));
+  for (const from of ownedTerritoryIds(state, me)) {
+    const fromArmies = state.territories[from]!.armies;
+    if (fromArmies < 2 || borders.has(from)) continue; // keep frontier garrisons in place
+    for (const to of neighborsOf(state.map, from)) {
+      if (state.territories[to]!.ownerId === me && borders.has(to)) {
+        return { from, to, armies: fromArmies - 1 };
+      }
+    }
+  }
+  return null;
+}
+
 /** +10 if capturing `to` would complete the continent `to` belongs to. */
 function continentCompletionBonus(state: GameState, me: PlayerId, to: string): number {
   const cont = state.map.continents.find((c) => c.territoryIds.includes(to));
