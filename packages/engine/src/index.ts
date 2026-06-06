@@ -1,1 +1,14 @@
 export const ENGINE_VERSION = "0.0.1";
+
+export * from "./types.js";
+export { validateMap, gameMapSchema } from "./map/schema.js";
+export { fixtureMap } from "./map/fixture.js";
+export { nextUint32, nextInt, rollDie, rollDice } from "./rng.js";
+export { createGame } from "./setup.js";
+export { reinforcementsFor, placeReinforcement, ownedTerritoryIds } from "./reinforce.js";
+export { isValidSet, tradeBonus, tradeCards } from "./cards.js";
+export { resolveAttack } from "./combat.js";
+export { fortify } from "./fortify.js";
+export { checkObjective, checkWin, commonTarget } from "./objectives.js";
+export { applyAction } from "./turn.js";
+export { type Player, RandomPlayer, runGame } from "./player.js";
