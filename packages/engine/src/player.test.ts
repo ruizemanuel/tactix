@@ -26,4 +26,22 @@ describe("runGame with RandomPlayer", () => {
     const final = runGame(createGame(fixtureMap, ["A", "B"], objectives, 5), players, 2000);
     expect(final.winnerId).not.toBeNull();
   });
+
+  test("games terminate with a winner across many seeds (no livelock)", () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const players = [new RandomPlayer("A"), new RandomPlayer("B")];
+      const final = runGame(createGame(fixtureMap, ["A", "B"], objectives, seed), players, 5000);
+      expect(final.winnerId, `seed ${seed} did not terminate`).not.toBeNull();
+    }
+  });
+
+  test("runGame throws when maxTurns is exceeded without a winner", () => {
+    const players = [new RandomPlayer("A"), new RandomPlayer("B")];
+    expect(() => runGame(createGame(fixtureMap, ["A", "B"], objectives, 1), players, 1)).toThrow(/maxTurns/);
+  });
+
+  test("runGame throws if a player id has no implementation", () => {
+    const players = [new RandomPlayer("A")]; // B missing
+    expect(() => runGame(createGame(fixtureMap, ["A", "B"], objectives, 4), players, 5000)).toThrow(/No Player implementation/);
+  });
 });
