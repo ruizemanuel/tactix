@@ -48,4 +48,21 @@ describe("HeuristicPlayer", () => {
     const action = new HeuristicPlayer("A").decide(s);
     expect(action).toEqual({ type: "tradeCards", cardIds: ["c1", "c2", "c3"] });
   });
+
+  test("beats RandomPlayer in a strong majority of games (100 seeds, alternating first move)", () => {
+    let heuristicWins = 0;
+    const N = 100;
+    for (let seed = 1; seed <= N; seed++) {
+      // Alternate who moves first to remove first-mover bias.
+      const ids = seed % 2 === 0 ? ["H", "R"] : ["R", "H"];
+      const players = [new HeuristicPlayer("H"), new RandomPlayer("R")];
+      const final = runGame(createGame(fixtureMap, ids, objectives, seed), players, 5000);
+      if (final.winnerId === "H") heuristicWins++;
+    }
+    // The heuristic (card trading + frontier massing + favorable-only attacks +
+    // continent priority + fortify) should dominate a random driver. If this is
+    // below 70, IMPROVE the heuristic — do NOT lower the gate. Levers: trade more
+    // aggressively, mass harder on the single best front, weight objective higher.
+    expect(heuristicWins).toBeGreaterThanOrEqual(70);
+  });
 });
