@@ -11,3 +11,11 @@ coverage/
 # specs/plans stay local, not committed
 docs/superpowers/
 .DS_Store
+# editor / tool / build caches
+.claude/
+.vscode/
+.idea/
+skills-lock.json
+*.tsbuildinfo
+.turbo/
+out/
