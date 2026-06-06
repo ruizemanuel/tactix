@@ -125,4 +125,16 @@ describe("bestFortify", () => {
     const s = makeState({ n3: { owner: "A", armies: 5 } });
     expect(bestFortify(s, "A")).toBeNull();
   });
+
+  test("returns null when a safe interior is not adjacent to any frontier", () => {
+    // A owns islands i1,i2,i3. Only i1 touches an enemy (s3) → i1 is the lone
+    // frontier. The interior stack is i3 (5 armies), whose only neighbor i2 is
+    // also interior — so there is no interior→frontier move.
+    const s = makeState({
+      i1: { owner: "A", armies: 1 },
+      i2: { owner: "A", armies: 1 },
+      i3: { owner: "A", armies: 5 },
+    });
+    expect(bestFortify(s, "A")).toBeNull();
+  });
 });
