@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+coverage/
+.env
+.env.*
+!.env.example
+# tool-generated dirs (public repo hygiene)
+.agents/
+.playwright-mcp/
+# specs/plans stay local, not committed
+docs/superpowers/
+.DS_Store
