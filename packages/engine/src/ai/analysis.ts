@@ -46,3 +46,54 @@ export function findTradeableSet(cards: Card[]): string[] | null {
   }
   return null;
 }
+
+/** +10 if capturing `to` would complete the continent `to` belongs to. */
+function continentCompletionBonus(state: GameState, me: PlayerId, to: string): number {
+  const cont = state.map.continents.find((c) => c.territoryIds.includes(to));
+  if (!cont) return 0;
+  const ownsRest = cont.territoryIds
+    .filter((t) => t !== to)
+    .every((t) => state.territories[t]!.ownerId === me);
+  return ownsRest ? 10 : 0;
+}
+
+/** +5 if capturing `to` advances the player's secret objective. */
+function objectiveBonus(state: GameState, me: PlayerId, to: string): number {
+  const player = state.players.find((p) => p.id === me);
+  const obj = player ? state.objectives[player.objectiveId] : undefined;
+  if (!obj) return 0;
+  if (obj.kind === "conquer-continents") {
+    const cont = state.map.continents.find((c) => c.territoryIds.includes(to));
+    return cont && obj.continentIds.includes(cont.id) ? 5 : 0;
+  }
+  if (obj.kind === "destroy-player") {
+    return state.territories[to]!.ownerId === obj.targetPlayerId ? 5 : 0;
+  }
+  return 0;
+}
+
+/**
+ * Highest-scoring FAVORABLE attack (attacker armies strictly greater than the
+ * defender's), or null if none. Score = army margin + continent-completion bonus
+ * + objective bonus. Ties resolve to the first found (deterministic).
+ */
+export function bestAttack(state: GameState, me: PlayerId): { from: string; to: string } | null {
+  let best: { from: string; to: string } | null = null;
+  let bestScore = -Infinity;
+  for (const from of ownedTerritoryIds(state, me)) {
+    const fromArmies = state.territories[from]!.armies;
+    if (fromArmies < 2) continue;
+    for (const to of neighborsOf(state.map, from)) {
+      const toTs = state.territories[to]!;
+      if (toTs.ownerId === me) continue;
+      if (fromArmies <= toTs.armies) continue; // only attack at an advantage
+      const score =
+        fromArmies - toTs.armies + continentCompletionBonus(state, me, to) + objectiveBonus(state, me, to);
+      if (score > bestScore) {
+        bestScore = score;
+        best = { from, to };
+      }
+    }
+  }
+  return best;
+}

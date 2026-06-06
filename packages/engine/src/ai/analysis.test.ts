@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { borderTerritories, bestReinforceTarget, findTradeableSet } from "./analysis.js";
+import { borderTerritories, bestReinforceTarget, findTradeableSet, bestAttack } from "./analysis.js";
 import { fixtureMap } from "../map/fixture.js";
 import type { Card, GameState, Objective, TurnPhase } from "../types.js";
 
@@ -71,5 +71,40 @@ describe("findTradeableSet", () => {
   test("returns null when no valid set exists", () => {
     const hand = [card("a", "globo"), card("b", "globo"), card("c", "canon")];
     expect(findTradeableSet(hand)).toBeNull();
+  });
+});
+
+describe("bestAttack", () => {
+  test("returns null when no attack is favorable", () => {
+    // A owns only n3 (2 armies); every neighbor is an enemy with 3 armies.
+    const s = makeState({
+      n3: { owner: "A", armies: 2 },
+      n1: { owner: "B", armies: 3 },
+      n2: { owner: "B", armies: 3 },
+      s1: { owner: "B", armies: 3 },
+    });
+    expect(bestAttack(s, "A")).toBeNull();
+  });
+
+  test("prefers the attack that completes a continent over a larger raw margin", () => {
+    // A owns n1,n2 (north needs n3) and a huge stack on s1.
+    // s1→n3 wins north (margin 8 + continent 10 = 18) and beats s1→s2 (margin 8).
+    const s = makeState({
+      n1: { owner: "A", armies: 2 },
+      n2: { owner: "A", armies: 2 },
+      s1: { owner: "A", armies: 9 },
+    });
+    expect(bestAttack(s, "A")).toEqual({ from: "s1", to: "n3" });
+  });
+
+  test("biases toward the player's secret objective continent", () => {
+    // A owns n3 (5). Equal margins to n1/n2 (north) and s1 (south).
+    // Objective targets 'south' → s1 gets the objective bonus and wins.
+    const objectives: Objective[] = [
+      { id: "oa", kind: "conquer-continents", description: "south", continentIds: ["south"], extraTerritories: 0 },
+      { id: "ob", kind: "conquer-count", description: "", targetCount: 99 },
+    ];
+    const s = makeState({ n3: { owner: "A", armies: 5 } }, { objectives, objByPlayer: { A: "oa", B: "ob" } });
+    expect(bestAttack(s, "A")).toEqual({ from: "n3", to: "s1" });
   });
 });
