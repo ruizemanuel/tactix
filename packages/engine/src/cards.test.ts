@@ -72,4 +72,18 @@ describe("tradeCards", () => {
     const s = { ...stateWithCards([cards[0]!, cards[1]!, cards[2]!]), phase: "attack" as const };
     expect(() => tradeCards(s, ["c1", "c2", "c3"])).toThrow(/reinforce/);
   });
+
+  test("does not mutate the input state", () => {
+    const s = stateWithCards([cards[0]!, cards[1]!, cards[2]!]);
+    const before = s.players[0]!.cards.length;
+    const beforePending = s.pendingReinforcements;
+    tradeCards(s, ["c1", "c2", "c3"]);
+    expect(s.players[0]!.cards).toHaveLength(before);
+    expect(s.pendingReinforcements).toBe(beforePending);
+  });
+
+  test("throws on duplicate card ids (cannot trade a 2-card hand as three)", () => {
+    const s = stateWithCards([cards[0]!, cards[3]!]); // c1 globo, c4 globo
+    expect(() => tradeCards(s, ["c1", "c1", "c4"])).toThrow(/3 distinct/i);
+  });
 });

@@ -12,6 +12,9 @@ export function tradeBonus(priorTradeIns: number): number {
 
 export function tradeCards(state: GameState, cardIds: string[]): GameState {
   if (state.phase !== "reinforce") throw new Error("Can only trade cards in the reinforce phase");
+  if (cardIds.length !== 3 || new Set(cardIds).size !== 3) {
+    throw new Error("Must trade exactly 3 distinct cards");
+  }
   const player = state.players[state.currentPlayerIndex]!;
   const hand = new Map(player.cards.map((c) => [c.id, c]));
   const chosen: Card[] = [];
@@ -23,7 +26,7 @@ export function tradeCards(state: GameState, cardIds: string[]): GameState {
   if (!isValidSet(chosen)) throw new Error("Cards are not a valid set");
 
   const bonus = tradeBonus(player.cardTradeIns);
-  const chosenIds = new Set(cardIds);
+  const chosenIds = new Set(chosen.map((c) => c.id));
   const updatedPlayer = {
     ...player,
     cards: player.cards.filter((c) => !chosenIds.has(c.id)),
