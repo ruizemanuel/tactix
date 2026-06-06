@@ -2,6 +2,7 @@ import { applyAction } from "./turn.js";
 import { nextInt } from "./rng.js";
 import { ownedTerritoryIds } from "./reinforce.js";
 import type { Action, GameState, PlayerId } from "./types.js";
+import { territoryById } from "./map/lookup.js";
 
 export interface Player {
   id: PlayerId;
@@ -23,7 +24,7 @@ function findAttack(state: GameState, me: PlayerId): { from: string; to: string 
   for (const tid of ownedTerritoryIds(state, me)) {
     const ts = state.territories[tid]!;
     if (ts.armies < 2) continue;
-    const def = state.map.territories.find((t) => t.id === tid)!;
+    const def = territoryById(state.map, tid);
     for (const adj of def.adjacentTo) {
       if (state.territories[adj]!.ownerId !== me) return { from: tid, to: adj };
     }

@@ -1,4 +1,5 @@
 import type { GameState } from "./types.js";
+import { territoryById } from "./map/lookup.js";
 
 export function fortify(state: GameState, from: string, to: string, armies: number): GameState {
   if (state.phase !== "fortify") throw new Error("Can only fortify in the fortify phase");
@@ -14,7 +15,7 @@ export function fortify(state: GameState, from: string, to: string, armies: numb
   }
   if (fromTs.armies - armies < 1) throw new Error("Must leave at least 1 army behind");
 
-  const fromDef = state.map.territories.find((t) => t.id === from)!;
+  const fromDef = territoryById(state.map, from);
   if (!fromDef.adjacentTo.includes(to)) throw new Error(`${from} and ${to} are not adjacent`);
 
   return {

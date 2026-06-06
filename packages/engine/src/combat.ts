@@ -1,5 +1,6 @@
 import { rollDice } from "./rng.js";
 import type { CombatResult, GameState } from "./types.js";
+import { territoryById } from "./map/lookup.js";
 
 export function resolveAttack(state: GameState, from: string, to: string): GameState {
   if (state.phase !== "attack") throw new Error("Can only attack in the attack phase");
@@ -12,7 +13,7 @@ export function resolveAttack(state: GameState, from: string, to: string): GameS
   if (toTs.ownerId === current.id) throw new Error("Cannot attack own territory");
   if (fromTs.armies < 2) throw new Error("Need at least 2 armies to attack");
 
-  const fromDef = state.map.territories.find((t) => t.id === from)!;
+  const fromDef = territoryById(state.map, from);
   if (!fromDef.adjacentTo.includes(to)) throw new Error(`${from} and ${to} are not adjacent`);
 
   const attackerCount = Math.min(3, fromTs.armies - 1);

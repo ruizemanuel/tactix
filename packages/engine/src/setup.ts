@@ -12,7 +12,7 @@ import type {
   TerritoryState,
 } from "./types.js";
 
-const SYMBOLS: CardSymbol[] = ["globo", "canon", "barco"];
+const SYMBOLS = ["globo", "canon", "barco"] as const satisfies readonly CardSymbol[];
 
 function shuffle<T>(items: T[], state: number): { items: T[]; state: number } {
   const out = [...items];

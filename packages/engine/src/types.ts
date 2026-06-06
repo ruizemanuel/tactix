@@ -45,6 +45,12 @@ export interface TerritoryState {
 
 export interface PlayerState {
   id: PlayerId;
+  /**
+   * Whether the player still holds territory. NOTE: only refreshed at end-of-turn
+   * (`turn.ts` endTurn). It can be a stale `true` mid-turn (e.g. a player wiped out
+   * during the current attack phase). If you need liveness mid-turn, derive it from
+   * `ownedTerritoryIds(state, id).length > 0` — do not trust this flag.
+   */
   alive: boolean;
   cards: Card[];
   objectiveId: string;

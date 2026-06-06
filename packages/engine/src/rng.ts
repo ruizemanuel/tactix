@@ -8,7 +8,11 @@ export function nextUint32(state: number): { value: number; state: number } {
   return { value, state: s };
 }
 
-/** Uniform integer in [0, max). */
+/**
+ * Integer in [0, max). Carries a negligible modulo bias (2^32 mod max favours the
+ * low values by ~1 part in 10^8) — accepted deliberately for a casual game; do not
+ * use for cryptographic purposes.
+ */
 export function nextInt(state: number, max: number): { value: number; state: number } {
   const r = nextUint32(state);
   return { value: r.value % max, state: r.state };
