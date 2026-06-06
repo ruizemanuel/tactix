@@ -31,6 +31,7 @@ describe("createGame", () => {
     expect(s.phase).toBe("reinforce");
     expect(s.currentPlayerIndex).toBe(0);
     expect(s.winnerId).toBeNull();
+    expect(s.pendingReinforcements).toBeGreaterThanOrEqual(3);
   });
 
   test("throws if players and objectives count mismatch", () => {

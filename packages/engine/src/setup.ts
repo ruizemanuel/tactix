@@ -1,5 +1,6 @@
 import { validateMap } from "./map/schema.js";
 import { nextInt } from "./rng.js";
+import { reinforcementsFor } from "./reinforce.js";
 import type {
   Card,
   CardSymbol,
@@ -65,7 +66,7 @@ export function createGame(
   const shuffledDeck = shuffle(deck, rngState);
   rngState = shuffledDeck.state;
 
-  return {
+  const state: GameState = {
     map,
     players,
     territories,
@@ -80,4 +81,5 @@ export function createGame(
     lastCombat: null,
     winnerId: null,
   };
+  return { ...state, pendingReinforcements: reinforcementsFor(state, players[0]!.id) };
 }
