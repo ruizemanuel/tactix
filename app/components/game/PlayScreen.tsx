@@ -77,6 +77,7 @@ export function PlayScreen() {
         <div className="flex flex-col gap-[2px]">
           {/* Wordmark: "TACTI" + crosshair X */}
           <div
+            aria-label={t("app.title")}
             className="flex items-center"
             style={{
               fontFamily: "var(--font-display-cond)",
@@ -87,7 +88,7 @@ export function PlayScreen() {
               color: "var(--color-text)",
             }}
           >
-            <span>TACTI</span>
+            <span aria-hidden="true">TACTI</span>
             {/* CrosshairX sized to ~0.92em to match the cap-height of the wordmark */}
             <span
               style={{
