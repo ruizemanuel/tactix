@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Saira, Saira_Condensed, JetBrains_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import { I18nProvider } from "@/lib/i18n/I18nProvider.js";
 
 const bodyFont = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body" });
 const displayFont = Saira({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-saira" });
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       className={`h-full antialiased ${bodyFont.variable} ${displayFont.variable} ${condFont.variable} ${monoFont.variable}`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <I18nProvider>{children}</I18nProvider>
+      </body>
     </html>
   );
 }
