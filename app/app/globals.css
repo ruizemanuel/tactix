@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* fonts — next/font variables are set on <html> in layout.tsx */
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+  --font-display: var(--font-saira), system-ui, sans-serif;
+  --font-display-cond: var(--font-saira-cond), system-ui, sans-serif;
+
+  /* TACTIX war-room palette */
+  --color-bg: #070a10; /* near-black blue base */
+  --color-bg-2: #0b1119; /* panel / board base */
+  --color-surface: rgba(255, 255, 255, 0.045);
+  --color-surface-2: rgba(255, 255, 255, 0.07);
+  --color-hairline: rgba(255, 255, 255, 0.1);
+  --color-hairline-2: rgba(255, 255, 255, 0.16);
+  --color-you: #2fe6a6; /* human / player 0 — esmeralda */
+  --color-you-dim: #1f9c73;
+  --color-ai: #ff3b54; /* AI / player 1 — carmesí */
+  --color-ai-dim: #b32338;
+  --color-signal: #ffb020; /* amber — selection / targets / accents */
+  --color-neutral: rgba(255, 255, 255, 0.28);
+  --color-north: #39c0e8;
+  --color-south: #f5a524;
+  --color-islands: #a78bfa;
+  --color-text: #e9eef6;
+  --color-muted: #8a94a6;
+  --color-muted-2: #5e6776;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  background:
+    radial-gradient(1200px 700px at 18% -10%, rgba(20, 48, 74, 0.33), transparent 60%),
+    radial-gradient(900px 600px at 110% 0%, rgba(58, 14, 26, 0.33), transparent 55%),
+    var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
