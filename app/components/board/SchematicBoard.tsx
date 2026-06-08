@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { cn } from "@/lib/utils.js";
 import { CONTINENT_COLOR, NODE_POS, ownerColor } from "@/lib/game/layout.js";
 import type { BoardProps } from "./Board.js";
@@ -33,6 +34,9 @@ const STYLES = `
 `;
 
 export function SchematicBoard({ state, selectable, selected, onSelect }: BoardProps) {
+  const uid = useId();
+  const glowId = `${uid}-glow`;
+  const sweepId = `${uid}-sweep`;
   const selectableSet = new Set(selectable);
   const { territories, map } = state;
 
@@ -78,7 +82,7 @@ export function SchematicBoard({ state, selectable, selected, onSelect }: BoardP
 
       <defs>
         {/* Soft glow filter used on owner-colored node circles */}
-        <filter id="sb-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.1" result="b" />
           <feMerge>
             <feMergeNode in="b" />
@@ -86,7 +90,7 @@ export function SchematicBoard({ state, selectable, selected, onSelect }: BoardP
           </feMerge>
         </filter>
         {/* Sweep gradient: esmeralda → transparent */}
-        <linearGradient id="sb-sweep" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={sweepId} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="var(--color-you)" />
           <stop offset="1" stopColor="transparent" />
         </linearGradient>
@@ -111,7 +115,7 @@ export function SchematicBoard({ state, selectable, selected, onSelect }: BoardP
       >
         <path
           d="M50 41 L50 -9 A50 50 0 0 1 92 17 Z"
-          fill="url(#sb-sweep)"
+          fill={`url(#${sweepId})`}
           opacity="0.10"
         />
       </g>
@@ -141,7 +145,7 @@ export function SchematicBoard({ state, selectable, selected, onSelect }: BoardP
           className="frontline-dash"
           stroke="var(--color-signal)"
           strokeWidth={0.8}
-          filter="url(#sb-glow)"
+          filter={`url(#${glowId})`}
           aria-hidden="true"
         >
           {frontlineEdges.map(([a, b]) => {
@@ -260,7 +264,7 @@ export function SchematicBoard({ state, selectable, selected, onSelect }: BoardP
               cy={pos.y}
               r={nodeR}
               fill={fill}
-              filter="url(#sb-glow)"
+              filter={`url(#${glowId})`}
             />
 
             {/* Continent-colored thin ring on top of fill */}
