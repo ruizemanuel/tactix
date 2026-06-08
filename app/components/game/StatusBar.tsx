@@ -124,9 +124,11 @@ export function StatusBar({ state, aiThinking }: { state: GameState; aiThinking:
         <TargetIcon />
         <span>
           {t("status.yourObjective", {
+            // Always the human's ("you") objective — never the current player's
+            // (else the AI's secret objective would show during its turn).
             obj: (() => {
-              const player = state.players.find((pl) => pl.id === current.id);
-              const objectiveId = player?.objectiveId ?? "";
+              const you = state.players.find((pl) => pl.id === "you");
+              const objectiveId = you?.objectiveId ?? "";
               const obj = state.objectives[objectiveId];
               return obj?.description || objectiveId;
             })(),
