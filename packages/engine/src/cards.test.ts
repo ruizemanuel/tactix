@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { isValidSet, tradeCards } from "./cards.js";
+import { isValidSet, tradeBonus, tradeCards } from "./cards.js";
 import type { Card, GameState } from "./types.js";
 
 const cards: Card[] = [
@@ -43,6 +43,12 @@ describe("isValidSet", () => {
   });
 });
 
+describe("tradeBonus", () => {
+  test("follows the TEG progression 4, 7, 10, then +5 (15, 20, 25, …)", () => {
+    expect([0, 1, 2, 3, 4, 5].map(tradeBonus)).toEqual([4, 7, 10, 15, 20, 25]);
+  });
+});
+
 describe("tradeCards", () => {
   test("first trade grants 4 armies and removes the cards", () => {
     const s = stateWithCards([cards[0]!, cards[1]!, cards[2]!]);
@@ -52,10 +58,10 @@ describe("tradeCards", () => {
     expect(next.players[0]!.cardTradeIns).toBe(1);
   });
 
-  test("second trade escalates to 6 armies", () => {
+  test("second trade grants 7 armies (TEG progression)", () => {
     const s = stateWithCards([cards[0]!, cards[3]!, cards[4]!], 1);
     const next = tradeCards(s, ["c1", "c4", "c5"]);
-    expect(next.pendingReinforcements).toBe(9); // 3 + 6
+    expect(next.pendingReinforcements).toBe(10); // 3 + 7
   });
 
   test("throws on an invalid set", () => {

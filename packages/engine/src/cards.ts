@@ -6,8 +6,13 @@ export function isValidSet(cards: Card[]): boolean {
   return symbols.size === 1 || symbols.size === 3;
 }
 
+/**
+ * Armies granted for a card trade-in, following the TEG progression:
+ * 1st = 4, 2nd = 7, 3rd = 10, then +5 each (15, 20, 25, …).
+ * `priorTradeIns` is how many trades the player has already completed (0-based).
+ */
 export function tradeBonus(priorTradeIns: number): number {
-  return 4 + 2 * priorTradeIns;
+  return priorTradeIns <= 2 ? 4 + 3 * priorTradeIns : 10 + 5 * (priorTradeIns - 2);
 }
 
 export function tradeCards(state: GameState, cardIds: string[]): GameState {
