@@ -22,3 +22,4 @@ export {
   findTradeableSet,
 } from "./ai/analysis.js";
 export { HeuristicPlayer } from "./ai/heuristic.js";
+export { WORLD_OBJECTIVES, assignObjectives } from "./worldObjectives.js";
