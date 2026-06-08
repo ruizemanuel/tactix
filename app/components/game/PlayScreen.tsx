@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useGame } from "@/lib/game/store.js";
 import { selectableTerritories, resolveTap } from "@/lib/game/interaction.js";
 import { findTradeableSet } from "@teg/engine";
-import { SchematicBoard } from "@/components/board/SchematicBoard.js";
+import { WorldBoard } from "@/components/board/WorldBoard.js";
 import { ActionPanel } from "@/components/game/ActionPanel.js";
 import { StatusBar } from "@/components/game/StatusBar.js";
 import { CombatResult } from "@/components/game/CombatResult.js";
@@ -144,7 +144,7 @@ export function PlayScreen() {
 
       <StatusBar state={state} aiThinking={aiThinking} />
 
-      <SchematicBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
+      <WorldBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
 
       <CombatResult combat={state.lastCombat} />
 

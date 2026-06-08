@@ -1,21 +1,15 @@
 import { create } from "zustand";
 import {
   applyAction,
+  assignObjectives,
   createGame,
   HeuristicPlayer,
-  fixtureMap,
+  worldMap,
   type GameState,
-  type Objective,
 } from "@teg/engine";
 
 const YOU = "you";
 const AI = "ai";
-
-// MVP objectives on the 9-territory fixture: both aim for the common target.
-const OBJECTIVES: Objective[] = [
-  { id: "obj-you", kind: "conquer-count", description: "Hold 6 of 9 territories", targetCount: 6 },
-  { id: "obj-ai", kind: "conquer-count", description: "Hold 6 of 9 territories", targetCount: 6 },
-];
 
 const sleep = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r, ms)) : Promise.resolve());
 
@@ -62,7 +56,8 @@ export const useGame = create<GameStore>((set, get) => {
     aiThinking: false,
 
     newGame: (seed = Math.floor(Math.random() * 2 ** 31)) => {
-      set({ state: createGame(fixtureMap, [YOU, AI], OBJECTIVES, seed), selected: null, aiThinking: false });
+      const objectives = assignObjectives([YOU, AI], seed);
+      set({ state: createGame(worldMap, [YOU, AI], objectives, seed), selected: null, aiThinking: false });
     },
 
     select: (territoryId) => set({ selected: territoryId }),
