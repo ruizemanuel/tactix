@@ -125,12 +125,10 @@ export function StatusBar({ state, aiThinking }: { state: GameState; aiThinking:
         <span>
           {t("status.yourObjective", {
             obj: (() => {
-              const pid = current.id;
-              const obj = state.objectives[state.players.find((pl) => pl.id === pid)?.objectiveId ?? ""];
-              if (!obj) return "";
-              if (obj.kind === "conquer-count") return obj.description || `control ${obj.targetCount} territories`;
-              if (obj.kind === "conquer-continents") return obj.description || `control continents`;
-              return obj.description || "";
+              const player = state.players.find((pl) => pl.id === current.id);
+              const objectiveId = player?.objectiveId ?? "";
+              const obj = state.objectives[objectiveId];
+              return obj?.description || objectiveId;
             })(),
           })}
         </span>
