@@ -2,7 +2,7 @@ import { ownedTerritoryIds } from "./reinforce.js";
 import type { GameMap, GameState, PlayerId } from "./types.js";
 
 export function commonTarget(map: GameMap): number {
-  return Math.ceil((map.territories.length * 2) / 3);
+  return map.commonObjectiveTarget ?? Math.ceil((map.territories.length * 2) / 3);
 }
 
 export function checkObjective(state: GameState, playerId: PlayerId): boolean {

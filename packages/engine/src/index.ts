@@ -3,6 +3,7 @@ export const ENGINE_VERSION = "0.0.1";
 export * from "./types.js";
 export { validateMap, gameMapSchema } from "./map/schema.js";
 export { fixtureMap } from "./map/fixture.js";
+export { worldMap } from "./map/worldMap.js";
 export { nextUint32, nextInt, rollDie, rollDice } from "./rng.js";
 export { createGame } from "./setup.js";
 export { reinforcementsFor, placeReinforcement, ownedTerritoryIds } from "./reinforce.js";

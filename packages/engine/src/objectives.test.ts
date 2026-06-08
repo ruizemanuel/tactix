@@ -60,4 +60,10 @@ describe("objectives", () => {
   test("commonTarget is ceil(2/3 of territories)", () => {
     expect(commonTarget(fixtureMap)).toBe(6);
   });
+
+  test("commonTarget uses the map's commonObjectiveTarget when present, else the 2/3 fallback", () => {
+    expect(commonTarget({ continents: [], territories: [], commonObjectiveTarget: 20 })).toBe(20);
+    const nine = Array.from({ length: 9 }, (_, i) => ({ id: `t${i}`, name: `t${i}`, continentId: "c", adjacentTo: [] }));
+    expect(commonTarget({ continents: [], territories: nine })).toBe(6);
+  });
 });

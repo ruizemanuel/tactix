@@ -19,6 +19,8 @@ export interface Territory {
 export interface GameMap {
   continents: Continent[];
   territories: Territory[];
+  /** Territories to occupy to win via the common objective. Falls back to ⌈2/3·N⌉. */
+  commonObjectiveTarget?: number;
 }
 
 export interface Card {
