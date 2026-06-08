@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { cn } from "@/lib/utils.js";
+import { tradeBonus } from "@teg/engine";
 import type { GameState } from "@teg/engine";
 
 export interface ActionPanelProps {
@@ -79,6 +80,8 @@ export function ActionPanel({
   const { t } = useI18n();
 
   if (state.phase === "reinforce") {
+    const youPlayer = state.players.find((p) => p.id === "you");
+    const nextTradeBonus = tradeBonus(youPlayer?.cardTradeIns ?? 0);
     return (
       <div className="flex flex-col gap-[10px]">
         <p
@@ -90,7 +93,7 @@ export function ActionPanel({
         <div className="flex gap-[9px]">
           {tradeSet && (
             <Btn variant="signal" onClick={() => onTradeCards(tradeSet)} className="flex-none px-[14px]">
-              {t("action.tradeCards", { n: 4 })}
+              {t("action.tradeCards", { n: nextTradeBonus })}
             </Btn>
           )}
           <Btn

@@ -29,6 +29,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "status.aiThinking": "AI is moving…",
     "combat.result": "{from} → {to}: you lost {al}, enemy lost {dl}{conq}",
     "combat.conquered": " — conquered!",
+    "combat.conqueredBadge": "Conquered!",
+    "a11y.language": "Language",
     "newGame": "New game",
   },
   es: {
@@ -56,6 +58,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "status.aiThinking": "La IA está jugando…",
     "combat.result": "{from} → {to}: perdiste {al}, el enemigo perdió {dl}{conq}",
     "combat.conquered": " — ¡conquistado!",
+    "combat.conqueredBadge": "¡Conquistado!",
+    "a11y.language": "Idioma",
     "newGame": "Nueva partida",
   },
 };

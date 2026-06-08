@@ -23,8 +23,6 @@ export function CombatResult({ combat }: { combat: Combat | null }) {
   const { t } = useI18n();
   if (!combat) return null;
 
-  const conquText = combat.conquered ? t("combat.conquered") : "";
-
   return (
     <div
       className="flex items-center gap-[9px] rounded-[10px] border border-[var(--color-ai)] px-[11px] py-[8px]"
@@ -43,7 +41,7 @@ export function CombatResult({ combat }: { combat: Combat | null }) {
           to: combat.to,
           al: combat.attackerLosses,
           dl: combat.defenderLosses,
-          conq: conquText,
+          conq: "",
         })}
       </span>
       {combat.conquered && (
@@ -51,7 +49,7 @@ export function CombatResult({ combat }: { combat: Combat | null }) {
           className="ml-auto text-[9.5px] font-bold uppercase tracking-[.1em] text-[var(--color-you)]"
           aria-hidden="true"
         >
-          {t("combat.conquered").replace(" — ", "")}
+          {t("combat.conqueredBadge")}
         </span>
       )}
     </div>
