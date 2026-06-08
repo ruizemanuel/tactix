@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen:geo": "node scripts/gen-world-geometry.mjs"
   },
   "dependencies": {
     "@teg/engine": "workspace:*",
@@ -27,9 +28,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
+    "d3-geo": "^3.1.1",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
+    "topojson-client": "^3.1.0",
     "typescript": "^5",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.5",
+    "world-atlas": "^2.0.2"
   }
 }
