@@ -26,6 +26,11 @@ async function main() {
     console.log(`Mocks → USDT ${usdt}  aUSDT ${aUsdt}  Aave ${aavePool}`);
   }
 
+  // platformWallet is IMMUTABLE in TegPool — a wrong value can only be fixed by redeploy.
+  // On mainnet, require it explicitly so fees never silently default to the deployer EOA.
+  if (isMainnet && !process.env.PLATFORM_WALLET) {
+    throw new Error("Set PLATFORM_WALLET (the real platform fee wallet) before a mainnet deploy — it is immutable.");
+  }
   const platformWallet = process.env.PLATFORM_WALLET ?? deployer.address;
   const now = (await ethers.provider.getBlock("latest"))!.timestamp;
   const lockTime = now + 60 * 60;             // +1h (tune per tournament)
