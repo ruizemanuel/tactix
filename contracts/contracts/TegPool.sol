@@ -56,6 +56,7 @@ contract TegPool is Ownable, Pausable, ReentrancyGuard {
 
     bool public emergencyActive;
     mapping(address => bool) public emergencyWithdrawn;
+    uint256 public emergencyWithdrawnCount;
 
     event OracleUpdated(address indexed oracle);
     event PlatformFeeUpdated(uint16 bps);
@@ -273,6 +274,7 @@ contract TegPool is Ownable, Pausable, ReentrancyGuard {
         if (!hasJoined[msg.sender]) revert NotJoined();
         if (emergencyWithdrawn[msg.sender]) revert AlreadyEmergencyWithdrawn();
         emergencyWithdrawn[msg.sender] = true;
+        emergencyWithdrawnCount++;
         usdt.safeTransfer(msg.sender, deposit);
         emit EmergencyUserWithdrawn(msg.sender, deposit);
     }
@@ -288,9 +290,14 @@ contract TegPool is Ownable, Pausable, ReentrancyGuard {
             uint256 aBal = aUsdt.balanceOf(address(this));
             if (aBal > 0) aavePool.withdraw(address(usdt), aBal, address(this));
         }
+        // Reserve deposit principal still owed to participants who have not yet
+        // emergency-withdrawn, so the owner can only recover the surplus (seed + yield),
+        // never user deposits. Abandoned deposits remain claimable via emergencyUserWithdraw.
+        uint256 reserve = deposit * (participants.length - emergencyWithdrawnCount);
         uint256 bal = usdt.balanceOf(address(this));
-        usdt.safeTransfer(owner(), bal);
-        emit EmergencyWithdraw(owner(), bal);
+        uint256 sweepable = bal > reserve ? bal - reserve : 0;
+        usdt.safeTransfer(owner(), sweepable);
+        emit EmergencyWithdraw(owner(), sweepable);
     }
 
     function participantsLength() external view returns (uint256) {

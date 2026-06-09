@@ -225,6 +225,57 @@ describe("TegPool — emergency", () => {
     await pool.connect(admin).emergencyAdminWithdraw();
     expect((await usdt.balanceOf(admin.address)) - before).to.equal(10_000_000n);
   });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Security fix: emergencyAdminWithdraw (Path A) must NOT sweep participant
+  // deposits that have not yet been emergency-withdrawn (no-loss guarantee).
+  // ──────────────────────────────────────────────────────────────────────────
+  it("Path A: owner sweeps only the surplus (seed+yield); slow participant still recovers full deposit", async () => {
+    const SEED = 10_000_000n; // 10 USDT
+    const { admin, alice, bob, usdt, aave, aUsdt, pool, endTime } = await deployFixture();
+
+    // Seed the pool
+    await usdt.connect(admin).approve(await pool.getAddress(), SEED);
+    await pool.connect(admin).seedPool(SEED);
+
+    // Alice and Bob both join (1 USDT each)
+    await usdt.connect(alice).approve(await pool.getAddress(), DEPOSIT);
+    await usdt.connect(bob).approve(await pool.getAddress(), DEPOSIT);
+    await pool.connect(alice).join();
+    await pool.connect(bob).join();
+
+    // Advance past endTime + 30 days → triggerEmergency is available
+    await ethers.provider.send("evm_setNextBlockTimestamp", [endTime + 30 * 86400 + 1]);
+    await ethers.provider.send("evm_mine", []);
+    await pool.connect(alice).triggerEmergency();
+
+    // Alice withdraws immediately; Bob does NOT (simulates an offline participant)
+    await pool.connect(alice).emergencyUserWithdraw();
+
+    // Advance to Path-A window: endTime + 60 days
+    await ethers.provider.send("evm_setNextBlockTimestamp", [endTime + 60 * 86400 + 1]);
+    await ethers.provider.send("evm_mine", []);
+
+    // Record owner balance before sweep
+    const ownerBefore = await usdt.balanceOf(admin.address);
+
+    // Admin calls emergencyAdminWithdraw (Path A)
+    await pool.connect(admin).emergencyAdminWithdraw();
+
+    const ownerGain = (await usdt.balanceOf(admin.address)) - ownerBefore;
+
+    // Owner should receive ONLY the surplus = seed (10 USDT, no yield in this scenario).
+    // Bob's 1 USDT deposit (DEPOSIT) must NOT be included.
+    expect(ownerGain).to.equal(SEED, "owner must NOT receive Bob's deposit — only the seed surplus");
+
+    // Bob can still recover his full deposit even after the admin sweep
+    const bobBefore = await usdt.balanceOf(bob.address);
+    await pool.connect(bob).emergencyUserWithdraw();
+    expect((await usdt.balanceOf(bob.address)) - bobBefore).to.equal(DEPOSIT, "Bob must recover full deposit after admin sweep");
+
+    // Pool is fully drained
+    expect(await usdt.balanceOf(await pool.getAddress())).to.equal(0n, "pool balance must be zero after all withdrawals");
+  });
 });
 
 describe("TegPool — admin setters", () => {
