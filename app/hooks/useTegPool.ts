@@ -119,6 +119,13 @@ export function useTegPool() {
       depositWithdrawn.refetch(),
       emergencyWithdrawn.refetch(),
       participantsLength.refetch(),
+      // settlement state that gates money CTAs (winner/claim, prize amount, emergency
+      // phase) — refetch too so the lobby reflects an oracle finalize/emergency that
+      // landed between the user's actions.
+      winner.refetch(),
+      prizeAmount.refetch(),
+      emergencyActive.refetch(),
+      scoresSubmitted.refetch(),
     ]);
   }
 
