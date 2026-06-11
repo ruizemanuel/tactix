@@ -1,0 +1,74 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { I18nProvider } from "@/lib/i18n/I18nProvider.js";
+
+const hook = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
+vi.mock("@/hooks/useTegPool.js", () => ({ useTegPool: () => hook.value }));
+
+import { TournamentCard } from "./TournamentCard.js";
+
+function base() {
+  return {
+    configured: true,
+    isTestnet: true,
+    deposit: 1_000_000n,
+    prizeAmount: 11_800_000n,
+    platformFeeBps: 1000,
+    participants: 3,
+    label: "TACTIX-1",
+    view: { phase: "OPEN", cta: "approve" },
+    actions: {
+      switchNetwork: vi.fn(),
+      mintTestUsdt: vi.fn(),
+      approve: vi.fn(),
+      join: vi.fn(),
+      withdrawDeposit: vi.fn(),
+      claimPrize: vi.fn(),
+      emergencyUserWithdraw: vi.fn(),
+    },
+    refetchAll: vi.fn(),
+  };
+}
+
+function renderIt() {
+  return render(
+    <I18nProvider initialLocale="en">
+      <TournamentCard />
+    </I18nProvider>,
+  );
+}
+
+describe("TournamentCard CTA", () => {
+  beforeEach(() => {
+    hook.value = base();
+  });
+
+  it("not configured → noPool message", () => {
+    hook.value = { ...base(), configured: false };
+    renderIt();
+    expect(screen.getByText(/no active tournament/i)).toBeInTheDocument();
+  });
+
+  it("approve CTA shows the deposit amount", () => {
+    renderIt();
+    expect(screen.getByRole("button", { name: /approve 1 usdt/i })).toBeInTheDocument();
+  });
+
+  it("join CTA", () => {
+    hook.value = { ...base(), view: { phase: "OPEN", cta: "join" } };
+    renderIt();
+    expect(screen.getByRole("button", { name: /join · 1 usdt/i })).toBeInTheDocument();
+  });
+
+  it("claim CTA shows the prize amount", () => {
+    hook.value = { ...base(), view: { phase: "FINALIZED", cta: "claim" } };
+    renderIt();
+    expect(screen.getByRole("button", { name: /claim prize · 11\.8 usdt/i })).toBeInTheDocument();
+  });
+
+  it("needUsdt on testnet → mint test USDT button", () => {
+    hook.value = { ...base(), view: { phase: "OPEN", cta: "needUsdt" } };
+    renderIt();
+    expect(screen.getByRole("button", { name: /mint test usdt/i })).toBeInTheDocument();
+  });
+});
