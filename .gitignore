@@ -5,6 +5,8 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.local.example
+!app/.env.local.example
 # tool-generated dirs (public repo hygiene)
 .agents/
 .playwright-mcp/
