@@ -1,0 +1,25 @@
+{
+  "network": "celo-sepolia",
+  "chainId": 11142220,
+  "note": "Short-cycle TEST instance (lock +15min / end +30min) — verification target for 5b. Redeploy a fresh instance per tournament; one tournament == one deployment.",
+  "contracts": {
+    "TegPool": "0x9B114E9AB10c952B7fbb41A6C8291286A5A3ECaB",
+    "MockUSDT": "0xf2F9cb6f62C0aFb692907d5A8194CEB66bb60658",
+    "MockAUsdt": "0x3a07f035d40a0d5149498CFA1756F2b1e3a9dC8c",
+    "MockAavePool": "0x080fc416B488e9a45d850BbA0928F32140E4c49d"
+  },
+  "tegPoolArgs": {
+    "usdt": "0xf2F9cb6f62C0aFb692907d5A8194CEB66bb60658",
+    "aavePool": "0x080fc416B488e9a45d850BbA0928F32140E4c49d",
+    "aUsdt": "0x3a07f035d40a0d5149498CFA1756F2b1e3a9dC8c",
+    "platformWallet": "0xBA98c90D32C2261705D5985f9dD7627BD6676171",
+    "lockTime": 1781219443,
+    "endTime": 1781220343,
+    "deposit": "1000000",
+    "tournamentId": "1",
+    "label": "TACTIX-1",
+    "platformFeeBps": 1000,
+    "owner": "0xBA98c90D32C2261705D5985f9dD7627BD6676171"
+  },
+  "explorer": "https://sepolia.celoscan.io/address/0x9B114E9AB10c952B7fbb41A6C8291286A5A3ECaB#code"
+}

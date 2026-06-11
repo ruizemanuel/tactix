@@ -33,8 +33,11 @@ async function main() {
   }
   const platformWallet = process.env.PLATFORM_WALLET ?? deployer.address;
   const now = (await ethers.provider.getBlock("latest"))!.timestamp;
-  const lockTime = now + 60 * 60;             // +1h (tune per tournament)
-  const endTime = lockTime + 7 * 24 * 60 * 60; // +7d
+  // Tunable per tournament via env (seconds). Defaults: lock +1h, end +7d after lock.
+  const lockOffset = Number(process.env.LOCK_OFFSET_SEC ?? 60 * 60);
+  const endOffset = Number(process.env.END_OFFSET_SEC ?? 7 * 24 * 60 * 60);
+  const lockTime = now + lockOffset;
+  const endTime = lockTime + endOffset;
   const deposit = 1_000_000n;                  // 1 USDT (6 decimals)
   const feeBps = 1000;                         // 10%
 
@@ -45,7 +48,7 @@ async function main() {
   console.log(`TegPool deployed → ${addr}`);
   console.log("Verify args:", JSON.stringify(args.map(String)));
 
-  if (isMainnet || network.name === "alfajores") {
+  if (isMainnet || network.name === "alfajores" || network.name === "celo-sepolia") {
     console.log("Waiting for confirmations before verify…");
     await pool.deploymentTransaction()?.wait(5);
     try {
