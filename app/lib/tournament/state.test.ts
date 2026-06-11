@@ -81,4 +81,25 @@ describe("deriveTournamentView — CTA", () => {
   it("EMERGENCY, already emergency-withdrawn → done", () => {
     expect(deriveTournamentView({ ...base, emergencyActive: true, hasJoined: true, emergencyWithdrawn: true }).cta).toBe("done");
   });
+  it("OPEN, approved but insufficient balance → needUsdt (balance beats allowance)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, allowance: 1_000_000n, usdtBalance: 0n }).cta).toBe("needUsdt");
+  });
+  it("ENDED, joined → joinedWaiting", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 3500, hasJoined: true }).cta).toBe("joinedWaiting");
+  });
+});
+
+describe("deriveTournamentView — time boundaries (off-by-one guards)", () => {
+  it("now == lockTime → LOCKED (not OPEN)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 2000 }).phase).toBe("LOCKED");
+  });
+  it("now == endTime → ENDED (not LOCKED)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 3000 }).phase).toBe("ENDED");
+  });
+  it("allowance exactly == deposit → join", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, allowance: 1_000_000n, usdtBalance: 1_000_000n }).cta).toBe("join");
+  });
+  it("usdtBalance exactly == deposit → not needUsdt (balance is sufficient)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, allowance: 0n, usdtBalance: 1_000_000n }).cta).toBe("approve");
+  });
 });
