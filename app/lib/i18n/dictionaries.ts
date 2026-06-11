@@ -32,6 +32,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "combat.conqueredBadge": "Conquered!",
     "a11y.language": "Language",
     "newGame": "New game",
+    "wallet.connect": "Connect wallet",
+    "wallet.disconnect": "Disconnect",
+    "wallet.wrongNetwork": "Switch network",
   },
   es: {
     "app.title": "TACTIX",
@@ -61,6 +64,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "combat.conqueredBadge": "¡Conquistado!",
     "a11y.language": "Idioma",
     "newGame": "Nueva partida",
+    "wallet.connect": "Conectar wallet",
+    "wallet.disconnect": "Desconectar",
+    "wallet.wrongNetwork": "Cambiar de red",
   },
 };
 
