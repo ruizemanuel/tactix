@@ -7,6 +7,8 @@ export type Cta =
   | "approve"
   | "join"
   | "joinedWaiting"
+  | "paused"
+  | "full"
   | "claim"
   | "withdraw"
   | "emergencyWithdraw"
@@ -23,6 +25,8 @@ export interface TournamentInput {
   allowance: bigint;
   usdtBalance: bigint;
   hasJoined: boolean;
+  paused: boolean;
+  poolFull: boolean;
   finalized: boolean;
   scoresSubmitted: boolean;
   isWinner: boolean;
@@ -64,6 +68,8 @@ function deriveCta(i: TournamentInput, phase: TournamentPhase): Cta {
 
   if (phase === "OPEN") {
     if (i.hasJoined) return "joinedWaiting";
+    if (i.paused) return "paused";
+    if (i.poolFull) return "full";
     // Balance is checked before allowance on purpose: an approved-but-broke user
     // still can't join, so "needUsdt" takes precedence over "join".
     if (i.usdtBalance < i.deposit) return "needUsdt";

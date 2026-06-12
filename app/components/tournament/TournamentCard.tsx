@@ -58,6 +58,10 @@ export function TournamentCard() {
         return <TxButton label={t("cta.withdraw")} onRun={a.withdrawDeposit} onDone={p.refetchAll} />;
       case "emergencyWithdraw":
         return <TxButton variant="ghost" label={t("cta.emergencyWithdraw")} onRun={a.emergencyUserWithdraw} onDone={p.refetchAll} />;
+      case "paused":
+        return <p className="text-sm text-[var(--color-signal)]">{t("tournament.paused")}</p>;
+      case "full":
+        return <p className="text-sm text-[var(--color-muted)]">{t("tournament.full")}</p>;
       case "done":
         return <p className="text-sm text-[var(--color-muted)]">{t("tournament.done")}</p>;
       default:

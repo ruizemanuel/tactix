@@ -11,6 +11,8 @@ const base: TournamentInput = {
   allowance: 0n,
   usdtBalance: 5_000_000n,
   hasJoined: false,
+  paused: false,
+  poolFull: false,
   finalized: false,
   scoresSubmitted: false,
   isWinner: false,
@@ -86,6 +88,18 @@ describe("deriveTournamentView — CTA", () => {
   });
   it("ENDED, joined → joinedWaiting", () => {
     expect(deriveTournamentView({ ...base, nowSec: 3500, hasJoined: true }).cta).toBe("joinedWaiting");
+  });
+  it("OPEN, not joined, paused → paused", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, paused: true }).cta).toBe("paused");
+  });
+  it("OPEN, not joined, pool full → full", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, poolFull: true }).cta).toBe("full");
+  });
+  it("OPEN, already joined, paused → joinedWaiting (pause doesn't affect a joined user)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, hasJoined: true, paused: true }).cta).toBe("joinedWaiting");
+  });
+  it("OPEN, paused takes precedence over full", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1500, paused: true, poolFull: true }).cta).toBe("paused");
   });
 });
 

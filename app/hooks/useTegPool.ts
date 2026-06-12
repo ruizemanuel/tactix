@@ -56,6 +56,8 @@ export function useTegPool() {
   const prizeClaimed = read("prizeClaimed");
   const depositWithdrawn = read("depositWithdrawn", address ? [address] : undefined, userEnabled);
   const emergencyWithdrawn = read("emergencyWithdrawn", address ? [address] : undefined, userEnabled);
+  const paused = read("paused");
+  const maxParticipants = read("MAX_PARTICIPANTS");
 
   const allowance = useReadContract({
     abi: erc20Abi,
@@ -82,6 +84,10 @@ export function useTegPool() {
   const winnerAddr = winner.data as `0x${string}` | undefined;
   const isWinner = Boolean(address && winnerAddr && winnerAddr.toLowerCase() === address.toLowerCase());
 
+  const participantsNum = Number((participantsLength.data as bigint | undefined) ?? 0n);
+  const maxNum = Number((maxParticipants.data as bigint | undefined) ?? 0n);
+  const poolFull = maxNum > 0 && participantsNum >= maxNum;
+
   const input: TournamentInput = {
     connected,
     wrongNetwork,
@@ -92,6 +98,8 @@ export function useTegPool() {
     allowance: (allowance.data as bigint | undefined) ?? 0n,
     usdtBalance: (usdtBalance.data as bigint | undefined) ?? 0n,
     hasJoined: Boolean(hasJoined.data),
+    paused: Boolean(paused.data),
+    poolFull,
     finalized: Boolean(finalized.data),
     scoresSubmitted: Boolean(scoresSubmitted.data),
     isWinner,
@@ -126,6 +134,7 @@ export function useTegPool() {
       prizeAmount.refetch(),
       emergencyActive.refetch(),
       scoresSubmitted.refetch(),
+      paused.refetch(),
     ]);
   }
 
