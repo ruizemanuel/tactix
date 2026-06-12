@@ -55,6 +55,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "cta.mintTestUsdt": "Mint test USDT",
     "tx.confirming": "Confirming…",
     "tx.error": "Transaction failed. Try again.",
+    "lobby.play": "Play",
+    "lobby.backToLobby": "← Lobby",
+    "lobby.subtitle": "Deposit, compete, withdraw. Your deposit is always yours.",
   },
   es: {
     "app.title": "TACTIX",
@@ -107,6 +110,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "cta.mintTestUsdt": "Mintear USDT de prueba",
     "tx.confirming": "Confirmando…",
     "tx.error": "La transacción falló. Probá de nuevo.",
+    "lobby.play": "Jugar",
+    "lobby.backToLobby": "← Lobby",
+    "lobby.subtitle": "Depositá, competí, retirá. Tu depósito siempre es tuyo.",
   },
 };
 
