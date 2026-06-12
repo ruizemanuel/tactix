@@ -32,6 +32,12 @@ async function main() {
     throw new Error("Set PLATFORM_WALLET (the real platform fee wallet) before a mainnet deploy — it is immutable.");
   }
   const platformWallet = process.env.PLATFORM_WALLET ?? deployer.address;
+  // Owner controls fees, oracle, pause, and the emergency sweep. On mainnet REQUIRE an explicit
+  // owner — use a multisig / timelock, never the deployer EOA. Testnet/local defaults to deployer.
+  if (isMainnet && !process.env.OWNER) {
+    throw new Error("Set OWNER (a multisig/timelock) for a mainnet deploy — it controls fees/oracle/pause/emergency.");
+  }
+  const owner = process.env.OWNER ?? deployer.address;
   const now = (await ethers.provider.getBlock("latest"))!.timestamp;
   // Tunable per tournament via env (seconds). Defaults: lock +1h, end +7d after lock.
   const lockOffset = Number(process.env.LOCK_OFFSET_SEC ?? 60 * 60);
@@ -41,11 +47,12 @@ async function main() {
   const deposit = 1_000_000n;                  // 1 USDT (6 decimals)
   const feeBps = 1000;                         // 10%
 
-  const args = [usdt, aavePool, aUsdt, platformWallet, lockTime, endTime, deposit, 1n, "TACTIX-1", feeBps, deployer.address] as const;
+  const args = [usdt, aavePool, aUsdt, platformWallet, lockTime, endTime, deposit, 1n, "TACTIX-1", feeBps, owner] as const;
   const pool = await (await ethers.getContractFactory("TegPool")).deploy(...args);
   await pool.waitForDeployment();
   const addr = await pool.getAddress();
   console.log(`TegPool deployed → ${addr}`);
+  console.log(`  owner=${owner}  platformWallet=${platformWallet}`);
   console.log("Verify args:", JSON.stringify(args.map(String)));
 
   if (isMainnet || network.name === "alfajores" || network.name === "celo-sepolia") {

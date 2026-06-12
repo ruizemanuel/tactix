@@ -8,6 +8,7 @@ Create `contracts/.env` (gitignored — copy from `.env.example`) with:
 DEPLOYER_PRIVATE_KEY=0x<your_funded_key>
 CELOSCAN_API_KEY=<your_etherscan_v2_unified_key>
 PLATFORM_WALLET=0x<optional_platform_wallet>   # defaults to deployer
+OWNER=0x<multisig_or_timelock>                 # required on mainnet; defaults to deployer on testnet/local
 ```
 
 **Never commit `.env`.** The `.gitignore` already excludes it.  
@@ -53,8 +54,9 @@ Before running:
    - aUSDT: `0xDeE98402A302e4D707fB9bf2bac66fAEEc31e8Df`
    - Aave V3 Pool: `0x3E59A31363E2ad014dcbc521c4a0d5757d9f3402`
 2. Set `PLATFORM_WALLET` in `.env` to the real platform wallet address.
-3. Fund the deployer with CELO (for gas) and optionally a USDT seed amount.
-4. **Tune** `lockTime`, `endTime`, `deposit`, and `feeBps` in `scripts/deploy.ts` for the specific tournament before deploying.
+3. Set `OWNER` in `.env` to a multisig/timelock (Gnosis Safe / OZ TimelockController). It controls fees, the oracle, pause, and the emergency sweep — do NOT use the deployer EOA on mainnet. The script hard-fails on mainnet if `OWNER` is unset.
+4. Fund the deployer with CELO (for gas) and optionally a USDT seed amount.
+5. **Tune** `lockTime`, `endTime`, `deposit`, and `feeBps` in `scripts/deploy.ts` for the specific tournament before deploying.
 
 ```sh
 pnpm -C contracts run deploy:celo
@@ -63,7 +65,7 @@ pnpm -C contracts run deploy:celo
 Post-deploy steps (run via a script or via Hardhat console):
 
 ```ts
-// 1. Set the oracle (backend signer that will call declareWinner)
+// 1. Set the oracle (backend signer that will call `submitScores`)
 await pool.setOracle("<backend_signer_address>");
 
 // 2. Approve USDT to the pool, then seed it
@@ -113,7 +115,7 @@ npx hardhat verify --network celo <TegPool_address> <arg0> <arg1> ... <arg10>
 - Pause `join` (withdrawals/claims remain open).
 - After a **60-day emergency window**, sweep only the **surplus** (seed + yield) — never unwithdrawn participant deposits. (This was fixed in the security pass; the contract enforces it on-chain.)
 
-**Aave systemic tail-risk:** all deposited USDT sits in Aave V3. An Aave insolvency or bad-debt event on USDT is an inherent risk of any yield-bearing no-loss design and is outside the contract's control.
+**Aave systemic tail-risk:** all deposited USDT sits in Aave V3. An Aave insolvency or bad-debt event on USDT is an inherent risk of any yield-bearing no-loss design and is outside the contract's control. Mitigation within the contract: `finalizeAndDistribute` enforces a safe-floor — an Aave shortfall **degrades to prize 0 and cannot brick settlement** (deposits remain withdrawable first-come from the available balance); systemic insolvency risk itself remains outside the contract's control.
 
 **Gitignored paths** — these must never be committed:
 - `contracts/.env` and any `contracts/.env.*` (except `.env.example`)
