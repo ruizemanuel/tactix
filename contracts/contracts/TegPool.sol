@@ -231,7 +231,12 @@ contract TegPool is Ownable, Pausable, ReentrancyGuard {
         aavePool.withdraw(address(usdt), aBal, address(this));
 
         uint256 totalDeposits = deposit * participants.length;
-        uint256 gross = usdt.balanceOf(address(this)) - totalDeposits; // seed + yield
+        // Safe floor: a true Aave shortfall (bal < totalDeposits) must NOT underflow-revert and
+        // brick settlement. Degrade to prize 0; deposits remain withdrawable first-come from the
+        // available balance. (With healthy Aave aTokens — non-rebasing, 1:1 — bal >= totalDeposits
+        // always, so this is identical to the previous behavior on every real path.)
+        uint256 bal = usdt.balanceOf(address(this));
+        uint256 gross = bal > totalDeposits ? bal - totalDeposits : 0; // seed + yield
         uint256 yieldEarned = gross > seedAmount ? gross - seedAmount : 0;
         uint256 fee = (yieldEarned * platformFeeBps) / 10000;
         if (fee > 0) usdt.safeTransfer(platformWallet, fee);

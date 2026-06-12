@@ -314,3 +314,25 @@ describe("TegPool — tie-break", () => {
     expect(await f.pool.winningScore()).to.equal(77n);
   });
 });
+
+describe("TegPool — Aave shortfall (safe-floor)", () => {
+  it("finalize does NOT brick on a shortfall: prize = 0, available funds recoverable first-come", async () => {
+    const { oracle, alice, bob, usdt, aave, pool, endTime } = await deployFixture();
+    await usdt.connect(alice).approve(await pool.getAddress(), DEPOSIT);
+    await usdt.connect(bob).approve(await pool.getAddress(), DEPOSIT);
+    await pool.connect(alice).join();
+    await pool.connect(bob).join();
+    // totalDeposits = 2 USDT, no seed/yield. Aave returns only 75% → 1.5 USDT < 2 USDT.
+    await aave.setShortfall(2500); // 25%
+    await ethers.provider.send("evm_setNextBlockTimestamp", [endTime + 1]);
+    await ethers.provider.send("evm_mine", []);
+    await pool.connect(oracle).submitScores([alice.address, bob.address], [10, 20], "0x" + "00".repeat(32));
+    // WITHOUT the floor this underflow-reverts; WITH it, finalize succeeds and prize = 0.
+    await expect(pool.connect(alice).finalizeAndDistribute()).to.emit(pool, "Finalized");
+    expect(await pool.prizeAmount()).to.equal(0n);
+    expect(await pool.feePaid()).to.equal(0n);
+    // best-effort recovery: pool holds 1.5 USDT; alice withdraws her full 1, bob's reverts (funds exhausted).
+    await pool.connect(alice).withdrawDeposit();
+    await expect(pool.connect(bob).withdrawDeposit()).to.be.reverted;
+  });
+});

@@ -24,9 +24,16 @@ contract MockAavePool {
         aUsdt.mint(onBehalfOf, amount);
     }
 
+    uint256 public shortfallBps; // test-only: simulate an Aave shortfall (0 = full 1:1 payout)
+
+    function setShortfall(uint256 bps) external {
+        shortfallBps = bps;
+    }
+
     function withdraw(address /*asset*/, uint256 amount, address to) external returns (uint256) {
         aUsdt.burn(msg.sender, amount);
-        usdt.transfer(to, amount);
-        return amount;
+        uint256 payout = amount - (amount * shortfallBps) / 10000;
+        usdt.transfer(to, payout);
+        return payout;
     }
 }
