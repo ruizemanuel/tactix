@@ -6,6 +6,7 @@ export type Cta =
   | "needUsdt"
   | "approve"
   | "join"
+  | "joinClosing"
   | "joinedWaiting"
   | "paused"
   | "full"
@@ -41,6 +42,10 @@ export interface TournamentView {
   cta: Cta;
 }
 
+/** Stop offering join this many seconds before lockTime, so the client clock never offers a
+ *  join() the chain will revert with TournamentLocked at block.timestamp >= lockTime. */
+export const JOIN_CLOSE_MARGIN_SEC = 60n;
+
 function derivePhase(i: TournamentInput): TournamentPhase {
   if (i.emergencyActive) return "EMERGENCY";
   if (i.finalized) return "FINALIZED";
@@ -70,6 +75,7 @@ function deriveCta(i: TournamentInput, phase: TournamentPhase): Cta {
     if (i.hasJoined) return "joinedWaiting";
     if (i.paused) return "paused";
     if (i.poolFull) return "full";
+    if (BigInt(i.nowSec) + JOIN_CLOSE_MARGIN_SEC >= i.lockTime) return "joinClosing";
     // Balance is checked before allowance on purpose: an approved-but-broke user
     // still can't join, so "needUsdt" takes precedence over "join".
     if (i.usdtBalance < i.deposit) return "needUsdt";

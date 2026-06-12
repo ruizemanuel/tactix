@@ -50,6 +50,8 @@ export function TournamentCard() {
         return <TxButton label={t("cta.approve", { amount: depositStr })} onRun={a.approve} onDone={p.refetchAll} />;
       case "join":
         return <TxButton label={t("cta.join", { amount: depositStr })} onRun={a.join} onDone={p.refetchAll} />;
+      case "joinClosing":
+        return <p className="text-sm text-[var(--color-signal)]">{t("tournament.joinClosing")}</p>;
       case "joinedWaiting":
         return <p className="text-sm font-semibold text-[var(--color-you)]">{t("tournament.joinedWaiting")}</p>;
       case "claim":

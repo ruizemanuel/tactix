@@ -101,6 +101,18 @@ describe("deriveTournamentView — CTA", () => {
   it("OPEN, paused takes precedence over full", () => {
     expect(deriveTournamentView({ ...base, nowSec: 1500, paused: true, poolFull: true }).cta).toBe("paused");
   });
+  it("OPEN, not joined, within 60s of lockTime → joinClosing (don't offer a Join that reverts)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1970, allowance: 1_000_000n }).cta).toBe("joinClosing");
+  });
+  it("OPEN, not joined, exactly at the margin edge (now+60 == lockTime) → joinClosing", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1940, allowance: 1_000_000n }).cta).toBe("joinClosing");
+  });
+  it("OPEN, not joined, just before the margin (now+60 < lockTime) → join", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1939, allowance: 1_000_000n }).cta).toBe("join");
+  });
+  it("OPEN, already joined, within margin → joinedWaiting (margin only gates new joins)", () => {
+    expect(deriveTournamentView({ ...base, nowSec: 1970, hasJoined: true }).cta).toBe("joinedWaiting");
+  });
 });
 
 describe("deriveTournamentView — time boundaries (off-by-one guards)", () => {
