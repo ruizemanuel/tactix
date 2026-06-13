@@ -15,7 +15,7 @@ describe("ranked client", () => {
     });
     const out = await startRanked(POOL, PLAYER);
     expect(out).toEqual({ gameId: "g1", seed: 42, commitHash: "0xabc" });
-    const [url, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(url).toBe("/api/ranked/start");
     expect(JSON.parse(init.body)).toEqual({ pool: POOL, player: PLAYER });
   });
