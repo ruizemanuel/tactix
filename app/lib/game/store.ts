@@ -5,6 +5,7 @@ import {
   createGame,
   HeuristicPlayer,
   worldMap,
+  type Action,
   type GameState,
 } from "@teg/engine";
 
@@ -17,7 +18,10 @@ interface GameStore {
   state: GameState | null;
   selected: string | null; // territory selected by the human (attack/fortify "from")
   aiThinking: boolean;
+  actionLog: Action[];
+  ranked: { gameId: string; seed: number } | null;
   newGame: (seed?: number) => void;
+  startRankedGame: (seed: number, gameId: string) => void;
   select: (territoryId: string | null) => void;
   place: (territoryId: string, armies: number) => void;
   tradeCards: (cardIds: string[]) => void;
@@ -34,7 +38,12 @@ export const useGame = create<GameStore>((set, get) => {
   function apply(action: Parameters<typeof applyAction>[1]) {
     const st = get().state;
     if (!st) return;
-    set({ state: applyAction(st, action), selected: null });
+    const { ranked, actionLog } = get();
+    set({
+      state: applyAction(st, action),
+      selected: null,
+      actionLog: ranked ? [...actionLog, action] : actionLog,
+    });
   }
 
   async function runAiTurn(stepDelayMs: number) {
@@ -54,10 +63,29 @@ export const useGame = create<GameStore>((set, get) => {
     state: null,
     selected: null,
     aiThinking: false,
+    actionLog: [],
+    ranked: null,
 
     newGame: (seed = Math.floor(Math.random() * 2 ** 31)) => {
       const objectives = assignObjectives([YOU, AI], seed);
-      set({ state: createGame(worldMap, [YOU, AI], objectives, seed), selected: null, aiThinking: false });
+      set({
+        state: createGame(worldMap, [YOU, AI], objectives, seed),
+        selected: null,
+        aiThinking: false,
+        actionLog: [],
+        ranked: null,
+      });
+    },
+
+    startRankedGame: (seed, gameId) => {
+      const objectives = assignObjectives([YOU, AI], seed);
+      set({
+        state: createGame(worldMap, [YOU, AI], objectives, seed),
+        selected: null,
+        aiThinking: false,
+        actionLog: [],
+        ranked: { gameId, seed },
+      });
     },
 
     select: (territoryId) => set({ selected: territoryId }),

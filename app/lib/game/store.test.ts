@@ -56,3 +56,26 @@ test("a full game played by auto-ending human turns terminates with a winner", a
   }
   expect(useGame.getState().state!.winnerId).not.toBeNull();
 });
+
+test("startRankedGame seeds a game and records human actions", () => {
+  useGame.getState().startRankedGame(1, "g1");
+  expect(useGame.getState().ranked).toEqual({ gameId: "g1", seed: 1 });
+
+  const st = useGame.getState().state!;
+  const terr = ownedTerritoryIds(st, "you")[0]!;
+  useGame.getState().place(terr, st.pendingReinforcements);
+  useGame.getState().endReinforce();
+
+  const log = useGame.getState().actionLog;
+  expect(log.length).toBe(2);
+  expect(log[1]).toEqual({ type: "endReinforce" });
+});
+
+test("practice newGame does not record actions", () => {
+  useGame.getState().newGame(1);
+  expect(useGame.getState().ranked).toBeNull();
+  const st = useGame.getState().state!;
+  const terr = ownedTerritoryIds(st, "you")[0]!;
+  useGame.getState().place(terr, st.pendingReinforcements);
+  expect(useGame.getState().actionLog.length).toBe(0);
+});
