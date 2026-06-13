@@ -6,13 +6,20 @@ export function ownedTerritoryIds(state: GameState, playerId: PlayerId): string[
     .map(([id]) => id);
 }
 
+export function continentsControlledBy(state: GameState, playerId: PlayerId): string[] {
+  const owned = new Set(ownedTerritoryIds(state, playerId));
+  return state.map.continents
+    .filter((c) => c.territoryIds.every((tid) => owned.has(tid)))
+    .map((c) => c.id);
+}
+
 export function reinforcementsFor(state: GameState, playerId: PlayerId): number {
   const owned = new Set(ownedTerritoryIds(state, playerId));
   const base = Math.max(3, Math.floor(owned.size / 2));
-  let bonus = 0;
-  for (const c of state.map.continents) {
-    if (c.territoryIds.every((tid) => owned.has(tid))) bonus += c.bonus;
-  }
+  const controlled = new Set(continentsControlledBy(state, playerId));
+  const bonus = state.map.continents
+    .filter((c) => controlled.has(c.id))
+    .reduce((sum, c) => sum + c.bonus, 0);
   return base + bonus;
 }
 

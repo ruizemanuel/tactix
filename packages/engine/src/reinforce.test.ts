@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
-import { placeReinforcement, reinforcementsFor } from "./reinforce.js";
+import { describe, expect, it, test } from "vitest";
+import { continentsControlledBy, placeReinforcement, reinforcementsFor } from "./reinforce.js";
 import type { GameState } from "./types.js";
 import { fixtureMap } from "./map/fixture.js";
 
@@ -62,5 +62,28 @@ describe("placeReinforcement", () => {
   test("throws when placing more than pending", () => {
     const s = { ...baseState(allToA), pendingReinforcements: 1 };
     expect(() => placeReinforcement(s, "n1", 2)).toThrow(/pending|enough/i);
+  });
+});
+
+import { createGame } from "./setup.js";
+import { assignObjectives } from "./worldObjectives.js";
+import { worldMap } from "./map/worldMap.js";
+
+describe("continentsControlledBy", () => {
+  it("lists only fully-owned continents", () => {
+    const seed = 1;
+    const base = createGame(worldMap, ["you", "ai"], assignObjectives(["you", "ai"], seed), seed);
+    const cont = worldMap.continents[0]!;
+    const territories = { ...base.territories };
+    for (const tid of cont.territoryIds) territories[tid] = { ownerId: "you", armies: 1 };
+    const state = { ...base, territories };
+    expect(continentsControlledBy(state, "you")).toContain(cont.id);
+  });
+
+  it("returns [] when the player owns no full continent", () => {
+    const seed = 2;
+    const state = createGame(worldMap, ["you", "ai"], assignObjectives(["you", "ai"], seed), seed);
+    // Fresh game alternates ownership, so no continent is fully held.
+    expect(continentsControlledBy(state, "you")).toEqual([]);
   });
 });
