@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
 
     try {
       submitTx = await wallet.writeContract({ address: pool, abi: tegPoolAbi, functionName: "submitScores", args: [users, points, randomSeed] });
-      await client.waitForTransactionReceipt({ hash: submitTx });
+      const submitReceipt = await client.waitForTransactionReceipt({ hash: submitTx });
+      if (submitReceipt.status !== "success") throw new Error(`submitScores reverted (${submitTx})`);
       await recordSettleRun({ poolAddress: pool, status: "submitted", txHash: submitTx, randomSeed: randomSeed.toString() });
     } catch (e) {
       const err = e instanceof Error ? e.message : String(e);
@@ -69,7 +70,8 @@ export async function POST(req: NextRequest) {
   let finalizeTx: `0x${string}`;
   try {
     finalizeTx = await wallet.writeContract({ address: pool, abi: tegPoolAbi, functionName: "finalizeAndDistribute" });
-    await client.waitForTransactionReceipt({ hash: finalizeTx });
+    const finalizeReceipt = await client.waitForTransactionReceipt({ hash: finalizeTx });
+    if (finalizeReceipt.status !== "success") throw new Error(`finalizeAndDistribute reverted (${finalizeTx})`);
     await recordSettleRun({ poolAddress: pool, status: "finalized", txHash: finalizeTx });
   } catch (e) {
     const err = e instanceof Error ? e.message : String(e);

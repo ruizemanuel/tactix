@@ -66,7 +66,7 @@ describe("POST /api/settle", () => {
     liveReads();
     bestScoresMap.mockResolvedValue(new Map([[A.toLowerCase(), 250]])); // B never played
     writeContract.mockResolvedValueOnce("0xsubmit").mockResolvedValueOnce("0xfinal");
-    waitForTransactionReceipt.mockResolvedValue({});
+    waitForTransactionReceipt.mockResolvedValue({ status: "success" });
 
     const res = await POST(req("s3cret"));
     expect(res.status).toBe(200);
@@ -77,6 +77,22 @@ describe("POST /api/settle", () => {
     expect(submitCall.args[0]).toEqual([A, B]); // users == participants in order
     expect(submitCall.args[1]).toEqual([250n, 0n]); // points aligned, absent => 0
     expect(writeContract.mock.calls.some((c) => c[0].functionName === "finalizeAndDistribute")).toBe(true);
+  });
+
+  it("500s and records failed when the submit tx reverts on-chain", async () => {
+    liveReads();
+    bestScoresMap.mockResolvedValue(new Map([[A.toLowerCase(), 250]]));
+    writeContract.mockResolvedValue("0xsubmit");
+    waitForTransactionReceipt.mockResolvedValue({ status: "reverted" });
+
+    const res = await POST(req("s3cret"));
+    expect(res.status).toBe(500);
+    const json = await res.json();
+    expect(json.ok).toBe(false);
+    expect(json.phase).toBe("submit");
+    expect(recordSettleRun).toHaveBeenCalledWith(expect.objectContaining({ status: "failed" }));
+    // finalize must NOT run after a failed submit
+    expect(writeContract.mock.calls.some((c) => c[0].functionName === "finalizeAndDistribute")).toBe(false);
   });
 
   it("skips when already finalized", async () => {
