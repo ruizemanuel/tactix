@@ -71,4 +71,17 @@ describe("TournamentCard CTA", () => {
     renderIt();
     expect(screen.getByRole("button", { name: /mint test usdt/i })).toBeInTheDocument();
   });
+
+  it("joinedWaiting + live tournament → Play-ranked link to /play/ranked", () => {
+    hook.value = { ...base(), view: { phase: "OPEN", cta: "joinedWaiting" } };
+    renderIt();
+    const link = screen.getByRole("link", { name: /play ranked/i });
+    expect(link).toHaveAttribute("href", "/play/ranked");
+  });
+
+  it("joinedWaiting but ENDED → no ranked link", () => {
+    hook.value = { ...base(), view: { phase: "ENDED", cta: "joinedWaiting" } };
+    renderIt();
+    expect(screen.queryByRole("link", { name: /play ranked/i })).toBeNull();
+  });
 });

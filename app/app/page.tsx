@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { WalletButton } from "@/components/wallet/WalletButton.js";
 import { TournamentCard } from "@/components/tournament/TournamentCard.js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher.js";
+import { Leaderboard } from "@/components/leaderboard/Leaderboard.js";
 
 export default function Home() {
   const { t } = useI18n();
@@ -30,6 +31,8 @@ export default function Home() {
       >
         {t("lobby.play")}
       </Link>
+
+      <Leaderboard />
 
       <div className="mt-auto flex justify-center">
         <LanguageSwitcher />

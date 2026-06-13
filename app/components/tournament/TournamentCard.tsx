@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
+import Link from "next/link";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { useTegPool } from "@/hooks/useTegPool.js";
 import { TxButton } from "./TxButton.js";
@@ -52,8 +53,22 @@ export function TournamentCard() {
         return <TxButton label={t("cta.join", { amount: depositStr })} onRun={a.join} onDone={p.refetchAll} />;
       case "joinClosing":
         return <p className="text-sm text-[var(--color-signal)]">{t("tournament.joinClosing")}</p>;
-      case "joinedWaiting":
-        return <p className="text-sm font-semibold text-[var(--color-you)]">{t("tournament.joinedWaiting")}</p>;
+      case "joinedWaiting": {
+        const canPlay = p.view.phase === "OPEN" || p.view.phase === "LOCKED";
+        return (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-semibold text-[var(--color-you)]">{t("tournament.joinedWaiting")}</p>
+            {canPlay && (
+              <Link
+                href="/play/ranked"
+                className="w-full rounded-xl bg-[var(--color-you)] px-4 py-3 text-center text-sm font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110"
+              >
+                {t("ranked.play")}
+              </Link>
+            )}
+          </div>
+        );
+      }
       case "claim":
         return <TxButton variant="prize" label={t("cta.claim", { amount: usd(p.prizeAmount) })} onRun={a.claimPrize} onDone={p.refetchAll} />;
       case "withdraw":
