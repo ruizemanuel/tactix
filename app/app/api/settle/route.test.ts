@@ -20,7 +20,7 @@ vi.mock("@/lib/contracts/addresses.js", () => ({
   ADDRESSES: { tegPool: "0x9999999999999999999999999999999999999999" },
 }));
 
-import { POST } from "./route.js";
+import { GET, POST } from "./route.js";
 
 const A = "0xAAa0000000000000000000000000000000000001";
 const B = "0xBbB0000000000000000000000000000000000002";
@@ -28,6 +28,12 @@ const B = "0xBbB0000000000000000000000000000000000002";
 function req(secret?: string) {
   return new Request("http://t/api/settle", {
     method: "POST",
+    headers: secret ? { authorization: `Bearer ${secret}` } : {},
+  }) as unknown as import("next/server").NextRequest;
+}
+function get(secret?: string, pool?: string) {
+  const url = pool ? `http://t/api/settle?pool=${pool}` : "http://t/api/settle";
+  return new Request(url, {
     headers: secret ? { authorization: `Bearer ${secret}` } : {},
   }) as unknown as import("next/server").NextRequest;
 }
@@ -107,5 +113,26 @@ describe("POST /api/settle", () => {
     const json = await res.json();
     expect(json.ok).toBe(true);
     expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("GET (the Vercel cron verb) settles like POST", async () => {
+    liveReads();
+    bestScoresMap.mockResolvedValue(new Map([[A.toLowerCase(), 250]]));
+    writeContract.mockResolvedValueOnce("0xsubmit").mockResolvedValueOnce("0xfinal");
+    waitForTransactionReceipt.mockResolvedValue({ status: "success" });
+    const res = await GET(get("s3cret"));
+    expect(res.status).toBe(200);
+    expect((await res.json()).ok).toBe(true);
+  });
+
+  it("401 on GET without the cron secret", async () => {
+    const res = await GET(get());
+    expect(res.status).toBe(401);
+  });
+
+  it("400 on a malformed ?pool=", async () => {
+    const res = await GET(get("s3cret", "not-an-address"));
+    expect(res.status).toBe(400);
+    expect((await res.json()).reason).toMatch(/invalid pool/i);
   });
 });

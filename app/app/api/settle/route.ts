@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
+import { isAddress } from "viem";
 import { CONFIGURED_CHAIN_ID, ADDRESSES } from "@/lib/contracts/addresses.js";
 import { tegPoolAbi } from "@/lib/contracts/tegPool.js";
 import { getServerPublicClient, getOracleWalletClient } from "@/lib/web3/server.js";
@@ -10,14 +11,27 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-export async function POST(req: NextRequest) {
+// Vercel Cron triggers this with GET (it auto-adds `Authorization: Bearer $CRON_SECRET`).
+// A manual trigger may use POST. Both delegate to the same idempotent handler.
+export function GET(req: NextRequest) {
+  return runSettle(req);
+}
+export function POST(req: NextRequest) {
+  return runSettle(req);
+}
+
+async function runSettle(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return new NextResponse("unauthorized", { status: 401 });
   }
 
   // new URL(req.url) (not req.nextUrl) so the handler is testable with a plain Request.
-  const pool = (new URL(req.url).searchParams.get("pool") ?? ADDRESSES.tegPool) as `0x${string}` | undefined;
+  const poolParam = new URL(req.url).searchParams.get("pool");
+  if (poolParam && !isAddress(poolParam)) {
+    return NextResponse.json({ ok: false, reason: "invalid pool address" }, { status: 400 });
+  }
+  const pool = (poolParam ?? ADDRESSES.tegPool) as `0x${string}` | undefined;
   if (!pool) return NextResponse.json({ ok: false, reason: "no pool configured" }, { status: 400 });
 
   const client = getServerPublicClient(CONFIGURED_CHAIN_ID);
