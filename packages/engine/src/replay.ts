@@ -71,3 +71,51 @@ export function replayGame(seed: number, humanActions: Action[], opts: ReplayOpt
   };
   return { ok: true, finalState: state, breakdown };
 }
+
+export type ReplayEvent = { actor: "human" | "ai"; action: Action; state: GameState };
+
+export type ReplayEventsResult =
+  | { ok: true; finalState: GameState; events: ReplayEvent[] }
+  | { ok: false; error: string };
+
+/**
+ * Like `replayGame`, but supports a PARTIAL human log: when the log is exhausted
+ * on the human's turn the walk stops (human to move) instead of erroring. Records
+ * every applied action with its resulting state so the server can redact the
+ * current `view` and the trailing AI `frames`. The scoring path stays in
+ * `replayGame` (frozen); a test pins `finalState` equivalence for complete logs.
+ */
+export function replayWithEvents(
+  seed: number,
+  humanActions: Action[],
+  opts: ReplayOpts,
+): ReplayEventsResult {
+  const { humanId, aiId, map = worldMap } = opts;
+  const objectives = assignObjectives([humanId, aiId], seed);
+  let state = createGame(map, [humanId, aiId], objectives, seed);
+  const ai = new HeuristicPlayer(aiId);
+  const events: ReplayEvent[] = [];
+
+  let cursor = 0;
+  let steps = 0;
+  while (state.winnerId === null) {
+    if (++steps > MAX_STEPS) return { ok: false, error: "replay exceeded step cap" };
+    const current = state.players[state.currentPlayerIndex]!.id;
+    if (current === humanId) {
+      if (cursor >= humanActions.length) break; // partial log — human to move
+      const action = humanActions[cursor++]!;
+      try {
+        state = applyAction(state, action);
+      } catch (e) {
+        return { ok: false, error: `illegal action at index ${cursor - 1}: ${(e as Error).message}` };
+      }
+      events.push({ actor: "human", action, state });
+    } else {
+      const action = ai.decide(state);
+      state = applyAction(state, action);
+      events.push({ actor: "ai", action, state });
+    }
+  }
+  if (cursor < humanActions.length) return { ok: false, error: "extra actions after game end" };
+  return { ok: true, finalState: state, events };
+}
