@@ -12,7 +12,8 @@ import {
 } from "drizzle-orm/pg-core";
 import type { Action } from "@teg/engine";
 
-// One ranked game = one row. start -> 'open' (seed + commitHash); submit -> 'scored'.
+// One ranked game = one row. start -> 'open' (seed + session token + growing action log);
+// each action appends under an optimistic version lock; finalize -> 'scored'.
 export const rankedGames = pgTable(
   "ranked_games",
   {
@@ -22,6 +23,8 @@ export const rankedGames = pgTable(
     seed: bigint("seed", { mode: "number" }).notNull(), // [0, 2^31)
     commitHash: text("commit_hash").notNull(),
     status: text("status").notNull().default("open"), // 'open' | 'scored'
+    version: integer("version").notNull().default(0),
+    sessionTokenHash: text("session_token_hash"),
     actions: jsonb("actions").$type<Action[]>(),
     score: integer("score"),
     won: boolean("won"),

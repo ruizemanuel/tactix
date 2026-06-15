@@ -9,6 +9,7 @@ export async function insertOpenGame(v: {
   player: string;
   seed: number;
   commitHash: string;
+  sessionTokenHash: string;
 }): Promise<string> {
   const db = getDb();
   const [row] = await db
@@ -18,6 +19,8 @@ export async function insertOpenGame(v: {
       player: v.player.toLowerCase(),
       seed: v.seed,
       commitHash: v.commitHash,
+      sessionTokenHash: v.sessionTokenHash,
+      actions: [],
       status: "open",
     })
     .returning({ id: rankedGames.id });
@@ -31,6 +34,31 @@ export async function getOpenGame(id: string) {
     .from(rankedGames)
     .where(and(eq(rankedGames.id, id), eq(rankedGames.status, "open")));
   return row ?? null;
+}
+
+/**
+ * Optimistic-lock append: persist the new full human log iff the row is still
+ * open and at `expectedVersion`. Returns the new version, or null on a version
+ * mismatch (concurrent writer / stale client) so the route can resync.
+ */
+export async function appendAction(
+  id: string,
+  expectedVersion: number,
+  newLog: Action[],
+): Promise<number | null> {
+  const db = getDb();
+  const rows = await db
+    .update(rankedGames)
+    .set({ actions: newLog, version: expectedVersion + 1 })
+    .where(
+      and(
+        eq(rankedGames.id, id),
+        eq(rankedGames.status, "open"),
+        eq(rankedGames.version, expectedVersion),
+      ),
+    )
+    .returning({ version: rankedGames.version });
+  return rows[0]?.version ?? null;
 }
 
 export async function markScored(
