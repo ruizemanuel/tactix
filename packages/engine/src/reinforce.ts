@@ -6,17 +6,20 @@ export function ownedTerritoryIds(state: GameState, playerId: PlayerId): string[
     .map(([id]) => id);
 }
 
-export function continentsControlledBy(state: GameState, playerId: PlayerId): string[] {
-  const owned = new Set(ownedTerritoryIds(state, playerId));
+function continentsFromOwnedSet(state: GameState, owned: Set<string>): string[] {
   return state.map.continents
     .filter((c) => c.territoryIds.every((tid) => owned.has(tid)))
     .map((c) => c.id);
 }
 
+export function continentsControlledBy(state: GameState, playerId: PlayerId): string[] {
+  return continentsFromOwnedSet(state, new Set(ownedTerritoryIds(state, playerId)));
+}
+
 export function reinforcementsFor(state: GameState, playerId: PlayerId): number {
   const owned = new Set(ownedTerritoryIds(state, playerId));
   const base = Math.max(3, Math.floor(owned.size / 2));
-  const controlled = new Set(continentsControlledBy(state, playerId));
+  const controlled = new Set(continentsFromOwnedSet(state, owned));
   const bonus = state.map.continents
     .filter((c) => controlled.has(c.id))
     .reduce((sum, c) => sum + c.bonus, 0);
