@@ -49,17 +49,25 @@ describe("POST /api/ranked/start", () => {
     expect(insertOpenGame).not.toHaveBeenCalled();
   });
 
-  it("200 with gameId/seed/commitHash for a participant in a live tournament", async () => {
+  it("200 with gameId/sessionToken/version/view — and NEVER the seed", async () => {
     chainReads({ hasJoined: true, emergency: false, endTimeAhead: true });
     insertOpenGame.mockResolvedValue("game-123");
     const res = await POST(req({ pool: POOL, player: PLAYER }));
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.gameId).toBe("game-123");
-    expect(Number.isInteger(json.seed)).toBe(true);
-    expect(json.seed).toBeGreaterThanOrEqual(0);
-    expect(json.seed).toBeLessThan(2 ** 31);
-    expect(json.commitHash).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(typeof json.sessionToken).toBe("string");
+    expect(json.sessionToken.length).toBeGreaterThanOrEqual(32);
+    expect(json.version).toBe(0);
+    expect(json.view).toBeDefined();
+    expect(json.view.players.map((p: { id: string }) => p.id)).toEqual(["you", "ai"]);
+    // The seed and rng must not be anywhere in the response.
+    expect("seed" in json).toBe(false);
+    expect(JSON.stringify(json)).not.toContain("rngState");
     expect(insertOpenGame).toHaveBeenCalledOnce();
+    // The stored token hash is sha256 hex (64 chars), not the raw token.
+    const stored = insertOpenGame.mock.calls[0]![0] as { sessionTokenHash: string };
+    expect(stored.sessionTokenHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(stored.sessionTokenHash).not.toBe(json.sessionToken);
   });
 });

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAddress, keccak256, toHex } from "viem";
 import crypto from "node:crypto";
+import { assignObjectives, createGame, redactState, worldMap } from "@teg/engine";
 import { CONFIGURED_CHAIN_ID } from "@/lib/contracts/addresses.js";
 import { tegPoolAbi } from "@/lib/contracts/tegPool.js";
 import { getServerPublicClient } from "@/lib/web3/server.js";
@@ -8,6 +9,9 @@ import { insertOpenGame } from "@/lib/db/rankedGames.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const HUMAN_ID = "you";
+const AI_ID = "ai";
 
 export async function POST(req: NextRequest) {
   let body: { pool?: string; player?: string };
@@ -34,8 +38,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "tournament ended" }, { status: 409 });
   }
 
+  // Seed never leaves the server. The session token authorizes the action loop.
   const seed = crypto.randomInt(0, 2 ** 31);
-  const commitHash = keccak256(toHex(seed));
-  const gameId = await insertOpenGame({ poolAddress: pool, player, seed, commitHash });
-  return NextResponse.json({ gameId, seed, commitHash });
+  const commitHash = keccak256(toHex(seed)); // audit commitment to the seed
+  const sessionToken = crypto.randomBytes(32).toString("hex");
+  const sessionTokenHash = crypto.createHash("sha256").update(sessionToken).digest("hex");
+
+  const objectives = assignObjectives([HUMAN_ID, AI_ID], seed);
+  const initial = createGame(worldMap, [HUMAN_ID, AI_ID], objectives, seed);
+  const view = redactState(initial, HUMAN_ID);
+
+  const gameId = await insertOpenGame({ poolAddress: pool, player, seed, commitHash, sessionTokenHash });
+  return NextResponse.json({ gameId, sessionToken, version: 0, view });
 }
