@@ -22,11 +22,15 @@ export async function startRanked(pool: string, player: string): Promise<StartRe
   return res.json();
 }
 
-export async function submitRanked(gameId: string, actions: Action[]): Promise<SubmitResult> {
+export async function submitRanked(
+  gameId: string,
+  actions: Action[],
+  signature: string,
+): Promise<SubmitResult> {
   const res = await fetch("/api/ranked/submit", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ gameId, actions }),
+    body: JSON.stringify({ gameId, actions, signature }),
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
