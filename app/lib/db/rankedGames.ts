@@ -36,9 +36,9 @@ export async function getOpenGame(id: string) {
 export async function markScored(
   id: string,
   v: { actions: Action[]; score: number; breakdown: ScoreBreakdown },
-): Promise<void> {
+): Promise<boolean> {
   const db = getDb();
-  await db
+  const rows = await db
     .update(rankedGames)
     .set({
       status: "scored",
@@ -50,7 +50,9 @@ export async function markScored(
       turnsUsed: v.breakdown.turnsUsed,
       scoredAt: new Date(),
     })
-    .where(eq(rankedGames.id, id));
+    .where(and(eq(rankedGames.id, id), eq(rankedGames.status, "open")))
+    .returning({ id: rankedGames.id });
+  return rows.length > 0;
 }
 
 export async function bestScores(poolAddress: string): Promise<RawScore[]> {

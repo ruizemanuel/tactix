@@ -92,10 +92,21 @@ describe("POST /api/ranked/submit", () => {
     getOpenGame.mockResolvedValue(openGame());
     replayGame.mockReturnValue({ ok: true, finalState: {}, breakdown });
     computeScore.mockReturnValue(1076);
+    markScored.mockResolvedValue(true);
     const res = await POST(req({ gameId: "g", actions: [{ type: "endReinforce" }], signature: await sign(PLAYER) }));
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json).toEqual({ score: 1076, breakdown, won: true });
     expect(markScored).toHaveBeenCalledWith("g", { actions: [{ type: "endReinforce" }], score: 1076, breakdown });
+  });
+
+  it("409 when the game was scored concurrently (markScored updates 0 rows)", async () => {
+    const breakdown = { won: true, continents: 1, territories: 18, turnsUsed: 7 };
+    getOpenGame.mockResolvedValue(openGame());
+    replayGame.mockReturnValue({ ok: true, finalState: {}, breakdown });
+    computeScore.mockReturnValue(1076);
+    markScored.mockResolvedValue(false);
+    const res = await POST(req({ gameId: "g", actions: [{ type: "endReinforce" }], signature: await sign(PLAYER) }));
+    expect(res.status).toBe(409);
   });
 });

@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 
   const score = computeScore(result.breakdown);
-  await markScored(game.id, { actions, score, breakdown: result.breakdown });
+  const scored = await markScored(game.id, { actions, score, breakdown: result.breakdown });
+  if (!scored) return NextResponse.json({ error: "already scored" }, { status: 409 });
   return NextResponse.json({ score, breakdown: result.breakdown, won: result.breakdown.won });
 }
