@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatUnits } from "viem";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { useTegPool } from "@/hooks/useTegPool.js";
 import { TxButton } from "./TxButton.js";
 import { MintTestUsdtButton } from "./MintTestUsdtButton.js";
+import { formatUsd } from "@/lib/format.js";
 
-function usd(amount: bigint): string {
-  return formatUnits(amount, 6);
-}
+const usd = formatUsd;
 
 export function TournamentCard() {
   const { t } = useI18n();
