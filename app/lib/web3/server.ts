@@ -1,4 +1,5 @@
 import { createPublicClient, createWalletClient, http, type Chain } from "viem";
+import { readTransport } from "./rpc.js";
 import { celo, celoSepolia, hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -18,9 +19,10 @@ export function chainForId(id: number): Chain {
 // Optional RPC override. The public forno endpoint can 403 under load (see 5b backlog);
 // set RPC_URL to a dedicated endpoint in production.
 const RPC_URL = process.env.RPC_URL;
+const RPC_URL_FALLBACK = process.env.RPC_URL_FALLBACK;
 
 export function getServerPublicClient(chainId: number) {
-  return createPublicClient({ chain: chainForId(chainId), transport: http(RPC_URL) });
+  return createPublicClient({ chain: chainForId(chainId), transport: readTransport(RPC_URL, RPC_URL_FALLBACK) });
 }
 
 export function getOracleWalletClient(chainId: number) {

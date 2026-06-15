@@ -1,15 +1,20 @@
-import { createConfig, http } from "wagmi";
+import { createConfig } from "wagmi";
 import { celo, celoSepolia, hardhat } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
+import { http } from "viem";
+import { readTransport } from "@/lib/web3/rpc.js";
 
-// Injected only (MiniPay injects an EIP-1193 provider). WalletConnect is a future add.
-// `hardhat` (31337) is included so local-node / mock-connector flows resolve a chain.
+// Read RPCs are overridable via env; defaults are forno (primary) + a public
+// fallback so a single endpoint hiccup doesn't break reads. Writes are unaffected.
+const CELO_RPC = process.env.NEXT_PUBLIC_RPC_URL ?? "https://forno.celo.org";
+const CELO_RPC_FALLBACK = process.env.NEXT_PUBLIC_RPC_URL_FALLBACK ?? "https://celo.drpc.org";
+
 export const config = createConfig({
   chains: [celo, celoSepolia, hardhat],
   connectors: [injected({ shimDisconnect: true })],
   transports: {
-    [celo.id]: http(),
-    [celoSepolia.id]: http(),
+    [celo.id]: readTransport(CELO_RPC, CELO_RPC_FALLBACK),
+    [celoSepolia.id]: readTransport(process.env.NEXT_PUBLIC_RPC_URL_SEPOLIA),
     [hardhat.id]: http("http://127.0.0.1:8545"),
   },
   ssr: true,
