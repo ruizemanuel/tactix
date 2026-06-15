@@ -64,6 +64,7 @@ export async function appendAction(
 export async function markScored(
   id: string,
   v: { actions: Action[]; score: number; breakdown: ScoreBreakdown },
+  expectedVersion: number,
 ): Promise<boolean> {
   const db = getDb();
   const rows = await db
@@ -78,7 +79,13 @@ export async function markScored(
       turnsUsed: v.breakdown.turnsUsed,
       scoredAt: new Date(),
     })
-    .where(and(eq(rankedGames.id, id), eq(rankedGames.status, "open")))
+    .where(
+      and(
+        eq(rankedGames.id, id),
+        eq(rankedGames.status, "open"),
+        eq(rankedGames.version, expectedVersion),
+      ),
+    )
     .returning({ id: rankedGames.id });
   return rows.length > 0;
 }

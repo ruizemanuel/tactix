@@ -12,48 +12,42 @@ const HUMAN_ID = "you";
 const AI_ID = "ai";
 
 export async function POST(req: NextRequest) {
-  let body: { gameId?: string; actions?: unknown; signature?: unknown };
+  let body: { gameId?: string; signature?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
-  if (!body.gameId || !Array.isArray(body.actions)) {
-    return NextResponse.json({ error: "gameId and actions[] required" }, { status: 400 });
+  if (!body.gameId) {
+    return NextResponse.json({ error: "gameId required" }, { status: 400 });
   }
 
   const game = await getOpenGame(body.gameId);
   if (!game) return NextResponse.json({ error: "game not found or already scored" }, { status: 404 });
 
-  // Ownership proof: the request must carry a personal_sign signature, by the
-  // game's player, over the canonical message bound to this single-use game.
+  // Ownership proof: a personal_sign signature by the game's player over the
+  // canonical message bound to this single-use game (same as the old submit).
   const signature = body.signature;
   if (typeof signature !== "string" || !signature) {
     return NextResponse.json({ error: "bad signature" }, { status: 401 });
   }
-  const message = buildSubmitMessage({
-    pool: game.poolAddress,
-    gameId: game.id,
-    chainId: CONFIGURED_CHAIN_ID,
-  });
+  const message = buildSubmitMessage({ pool: game.poolAddress, gameId: game.id, chainId: CONFIGURED_CHAIN_ID });
   let ok = false;
   try {
-    ok = await verifyMessage({
-      address: game.player as `0x${string}`,
-      message,
-      signature: signature as `0x${string}`,
-    });
+    ok = await verifyMessage({ address: game.player as `0x${string}`, message, signature: signature as `0x${string}` });
   } catch {
-    ok = false; // malformed signature → unauthorized, not a 500
+    ok = false;
   }
   if (!ok) return NextResponse.json({ error: "bad signature" }, { status: 401 });
 
-  const actions = body.actions as Action[];
-  const result = replayGame(Number(game.seed), actions, { humanId: HUMAN_ID, aiId: AI_ID });
+  // The server already holds the full log. replayGame rejects a not-yet-finished
+  // game (the human log won't reach a winner) -> 400.
+  const log = (game.actions ?? []) as Action[];
+  const result = replayGame(Number(game.seed), log, { humanId: HUMAN_ID, aiId: AI_ID });
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 
   const score = computeScore(result.breakdown);
-  const scored = await markScored(game.id, { actions, score, breakdown: result.breakdown });
+  const scored = await markScored(game.id, { actions: log, score, breakdown: result.breakdown }, game.version);
   if (!scored) return NextResponse.json({ error: "already scored" }, { status: 409 });
   return NextResponse.json({ score, breakdown: result.breakdown, won: result.breakdown.won });
 }
