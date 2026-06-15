@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { useGame } from "@/lib/game/store.js";
 import { selectableTerritories, resolveTap } from "@/lib/game/interaction.js";
 import { findTradeableSet } from "@teg/engine";
@@ -71,51 +72,62 @@ export function PlayScreen() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-3 p-4">
-      {/* ── Top bar: TACTIX wordmark + New game + LanguageSwitcher ── */}
-      <header className="flex items-center justify-between gap-2">
-        {/* Left: wordmark + tagline */}
-        <div className="flex flex-col gap-[2px]">
-          {/* Wordmark: "TACTI" + crosshair X */}
-          <div
-            aria-label={t("app.title")}
-            className="flex items-center"
-            style={{
-              fontFamily: "var(--font-display-cond)",
-              fontWeight: 800,
-              fontSize: "clamp(20px, 5vw, 24px)",
-              letterSpacing: ".05em",
-              lineHeight: "1",
-              color: "var(--color-text)",
-            }}
+      {/* ── Top bar: ← Lobby + TACTIX wordmark + New game + LanguageSwitcher ── */}
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        {/* Left: back-to-lobby + wordmark + tagline */}
+        <div className="flex items-center gap-2">
+          {/* Back-to-lobby — in normal flow (not an absolute overlay) so it never
+              collides with the wordmark on narrow viewports. */}
+          <Link
+            href="/"
+            className="rounded-lg border border-[var(--color-hairline-2)] px-3 py-[6px] text-[11px] font-bold uppercase tracking-[.08em] text-[var(--color-text)] hover:bg-white/10"
+            style={{ fontFamily: "var(--font-mono)" }}
           >
-            <span aria-hidden="true">TACTI</span>
-            {/* CrosshairX sized to ~0.92em to match the cap-height of the wordmark */}
-            <span
+            {t("lobby.backToLobby")}
+          </Link>
+          <div className="flex flex-col gap-[2px]">
+            {/* Wordmark: "TACTI" + crosshair X */}
+            <div
+              aria-label={t("app.title")}
+              className="flex items-center"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: ".92em",
-                height: ".92em",
-                translate: "0 .04em",
+                fontFamily: "var(--font-display-cond)",
+                fontWeight: 800,
+                fontSize: "clamp(20px, 5vw, 24px)",
+                letterSpacing: ".05em",
+                lineHeight: "1",
+                color: "var(--color-text)",
               }}
             >
-              <CrosshairX className="w-full h-full" />
-            </span>
+              <span aria-hidden="true">TACTI</span>
+              {/* CrosshairX sized to ~0.92em to match the cap-height of the wordmark */}
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: ".92em",
+                  height: ".92em",
+                  translate: "0 .04em",
+                }}
+              >
+                <CrosshairX className="w-full h-full" />
+              </span>
+            </div>
+            {/* Tagline: amber mono uppercase */}
+            <p
+              className="uppercase"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "7.5px",
+                letterSpacing: ".24em",
+                color: "var(--color-signal)",
+                marginTop: "2px",
+              }}
+            >
+              {t("app.tagline")}
+            </p>
           </div>
-          {/* Tagline: amber mono uppercase */}
-          <p
-            className="uppercase"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "7.5px",
-              letterSpacing: ".24em",
-              color: "var(--color-signal)",
-              marginTop: "2px",
-            }}
-          >
-            {t("app.tagline")}
-          </p>
         </div>
 
         {/* Right: New game button + language switcher */}
