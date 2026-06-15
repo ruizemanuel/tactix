@@ -8,47 +8,50 @@ import {
   type Action,
   type GameState,
 } from "@teg/engine";
+import { rehydrateView } from "@/lib/game/rehydrate.js";
+import { sendAction, type StartResult } from "@/lib/ranked/client.js";
 
 const YOU = "you";
 const AI = "ai";
+const RANKED_STEP_MS = 450;
 
 const sleep = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r, ms)) : Promise.resolve());
 
+interface RankedSession {
+  gameId: string;
+  sessionToken: string;
+  version: number;
+}
+
 interface GameStore {
   state: GameState | null;
-  selected: string | null; // territory selected by the human (attack/fortify "from")
+  selected: string | null;
   aiThinking: boolean;
-  actionLog: Action[];
-  ranked: { gameId: string; seed: number } | null;
+  ranked: RankedSession | null;
+  rankedError: boolean;
   newGame: (seed?: number) => void;
-  startRankedGame: (seed: number, gameId: string) => void;
+  startRankedGame: (start: StartResult) => void;
   select: (territoryId: string | null) => void;
-  place: (territoryId: string, armies: number) => void;
-  tradeCards: (cardIds: string[]) => void;
-  endReinforce: () => void;
-  attack: (from: string, to: string) => void;
-  endAttack: () => void;
-  fortify: (from: string, to: string, armies: number) => void;
+  place: (territoryId: string, armies: number) => Promise<void>;
+  tradeCards: (cardIds: string[]) => Promise<void>;
+  endReinforce: () => Promise<void>;
+  attack: (from: string, to: string) => Promise<void>;
+  endAttack: () => Promise<void>;
+  fortify: (from: string, to: string, armies: number) => Promise<void>;
   endTurn: (stepDelayMs?: number) => Promise<void>;
 }
 
 export const useGame = create<GameStore>((set, get) => {
   const ai = new HeuristicPlayer(AI);
 
-  function apply(action: Parameters<typeof applyAction>[1]) {
+  function applyLocal(action: Action) {
     const st = get().state;
     if (!st) return;
-    const { ranked, actionLog } = get();
-    set({
-      state: applyAction(st, action),
-      selected: null,
-      actionLog: ranked ? [...actionLog, action] : actionLog,
-    });
+    set({ state: applyAction(st, action), selected: null });
   }
 
   async function runAiTurn(stepDelayMs: number) {
     set({ aiThinking: true });
-    // Loop the AI's decisions until it is no longer the AI's turn or the game ends.
     for (let guard = 0; guard < 5000; guard++) {
       const st = get().state!;
       if (st.winnerId !== null) break;
@@ -59,12 +62,43 @@ export const useGame = create<GameStore>((set, get) => {
     set({ aiThinking: false });
   }
 
+  // Ranked: POST the action, animate the AI frames, land on the authoritative view.
+  // The aiThinking guard makes this a no-op if a round-trip/animation is already in
+  // flight, so overlapping requests (which would 409) can't be started.
+  async function sendRanked(action: Action) {
+    const ranked = get().ranked;
+    if (!ranked || get().aiThinking) return;
+    set({ aiThinking: true, selected: null });
+    try {
+      const r = await sendAction(ranked.gameId, ranked.sessionToken, ranked.version, action);
+      for (const frame of r.frames) {
+        set({ state: rehydrateView(frame) });
+        await sleep(RANKED_STEP_MS);
+      }
+      set({
+        state: rehydrateView(r.view),
+        ranked: { ...get().ranked!, version: r.version },
+        aiThinking: false,
+        rankedError: false,
+      });
+    } catch {
+      set({ aiThinking: false, rankedError: true });
+    }
+  }
+
+  // Route an action to the server (ranked) or the local engine (practice).
+  function dispatch(action: Action): Promise<void> {
+    if (get().ranked) return sendRanked(action);
+    applyLocal(action);
+    return Promise.resolve();
+  }
+
   return {
     state: null,
     selected: null,
     aiThinking: false,
-    actionLog: [],
     ranked: null,
+    rankedError: false,
 
     newGame: (seed = Math.floor(Math.random() * 2 ** 31)) => {
       const objectives = assignObjectives([YOU, AI], seed);
@@ -72,32 +106,35 @@ export const useGame = create<GameStore>((set, get) => {
         state: createGame(worldMap, [YOU, AI], objectives, seed),
         selected: null,
         aiThinking: false,
-        actionLog: [],
         ranked: null,
+        rankedError: false,
       });
     },
 
-    startRankedGame: (seed, gameId) => {
-      const objectives = assignObjectives([YOU, AI], seed);
+    startRankedGame: (start) => {
       set({
-        state: createGame(worldMap, [YOU, AI], objectives, seed),
+        state: rehydrateView(start.view),
         selected: null,
         aiThinking: false,
-        actionLog: [],
-        ranked: { gameId, seed },
+        ranked: { gameId: start.gameId, sessionToken: start.sessionToken, version: start.version },
+        rankedError: false,
       });
     },
 
     select: (territoryId) => set({ selected: territoryId }),
-    place: (territoryId, armies) => apply({ type: "place", territoryId, armies }),
-    tradeCards: (cardIds) => apply({ type: "tradeCards", cardIds }),
-    endReinforce: () => apply({ type: "endReinforce" }),
-    attack: (from, to) => apply({ type: "attack", from, to }),
-    endAttack: () => apply({ type: "endAttack" }),
-    fortify: (from, to, armies) => apply({ type: "fortify", from, to, armies }),
+    place: (territoryId, armies) => dispatch({ type: "place", territoryId, armies }),
+    tradeCards: (cardIds) => dispatch({ type: "tradeCards", cardIds }),
+    endReinforce: () => dispatch({ type: "endReinforce" }),
+    attack: (from, to) => dispatch({ type: "attack", from, to }),
+    endAttack: () => dispatch({ type: "endAttack" }),
+    fortify: (from, to, armies) => dispatch({ type: "fortify", from, to, armies }),
 
     endTurn: async (stepDelayMs = 450) => {
-      apply({ type: "endTurn" });
+      if (get().ranked) {
+        await sendRanked({ type: "endTurn" });
+        return;
+      }
+      applyLocal({ type: "endTurn" });
       await runAiTurn(stepDelayMs);
     },
   };

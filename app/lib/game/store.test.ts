@@ -1,8 +1,17 @@
 import { beforeEach, expect, test } from "vitest";
 import { useGame } from "./store.js";
 import { ownedTerritoryIds } from "@teg/engine";
+import { vi } from "vitest";
+import * as client from "@/lib/ranked/client.js";
+
+vi.mock("@/lib/ranked/client.js", () => ({
+  startRanked: vi.fn(),
+  sendAction: vi.fn(),
+  finalizeRanked: vi.fn(),
+}));
 
 function fresh() {
+  vi.clearAllMocks();
   useGame.getState().newGame(42);
 }
 
@@ -57,25 +66,32 @@ test("a full game played by auto-ending human turns terminates with a winner", a
   expect(useGame.getState().state!.winnerId).not.toBeNull();
 });
 
-test("startRankedGame seeds a game and records human actions", () => {
-  useGame.getState().startRankedGame(1, "g1");
-  expect(useGame.getState().ranked).toEqual({ gameId: "g1", seed: 1 });
-
-  const st = useGame.getState().state!;
-  const terr = ownedTerritoryIds(st, "you")[0]!;
-  useGame.getState().place(terr, st.pendingReinforcements);
-  useGame.getState().endReinforce();
-
-  const log = useGame.getState().actionLog;
-  expect(log.length).toBe(2);
-  expect(log[1]).toEqual({ type: "endReinforce" });
+test("startRankedGame stores the session + renders the server view", () => {
+  const view = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "reinforce", turnNumber: 1, pendingReinforcements: 3, conqueredThisTurn: false, deckCount: 32, lastCombat: null, winnerId: null };
+  useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: view as never });
+  expect(useGame.getState().ranked).toEqual({ gameId: "g1", sessionToken: "tok", version: 0 });
+  expect(useGame.getState().state!.rngState).toBe(0); // rehydrated, no real rng
+  expect(useGame.getState().state!.phase).toBe("reinforce");
 });
 
-test("practice newGame does not record actions", () => {
+test("a ranked action posts to the server and applies the returned view + version", async () => {
+  const baseView = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "attack", turnNumber: 1, pendingReinforcements: 0, conqueredThisTurn: false, deckCount: 32, lastCombat: null, winnerId: null };
+  useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: { ...baseView, phase: "reinforce", pendingReinforcements: 3 } as never });
+  (client.sendAction as ReturnType<typeof vi.fn>).mockResolvedValue({ version: 1, view: baseView, frames: [] });
+
+  await useGame.getState().endReinforce();
+  expect(client.sendAction).toHaveBeenCalledWith("g1", "tok", 0, { type: "endReinforce" });
+  expect(useGame.getState().ranked!.version).toBe(1);
+  expect(useGame.getState().state!.phase).toBe("attack");
+  expect(useGame.getState().aiThinking).toBe(false);
+});
+
+test("practice mode still applies locally with no network call", () => {
   useGame.getState().newGame(1);
   expect(useGame.getState().ranked).toBeNull();
   const st = useGame.getState().state!;
   const terr = ownedTerritoryIds(st, "you")[0]!;
   useGame.getState().place(terr, st.pendingReinforcements);
-  expect(useGame.getState().actionLog.length).toBe(0);
+  expect(useGame.getState().state!.territories[terr]!.armies).toBeGreaterThan(1);
+  expect(client.sendAction).not.toHaveBeenCalled();
 });
