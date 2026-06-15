@@ -34,6 +34,7 @@ export function LeaderboardView({ rows }: { rows: LeaderboardRow[] }) {
             return (
               <li
                 key={r.player}
+                aria-current={isMe ? "true" : undefined}
                 className={`flex items-center justify-between rounded-xl border px-3 py-3 ${
                   isMe ? "border-[var(--color-you)]/50 bg-[var(--color-you)]/5" : "border-[var(--color-hairline-2)] bg-white/[.02]"
                 }`}

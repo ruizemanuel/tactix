@@ -1,27 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ADDRESSES } from "@/lib/contracts/addresses.js";
 import { LeaderboardView, type LeaderboardRow } from "./LeaderboardView.js";
 
 export function Leaderboard() {
   const pool = ADDRESSES.tegPool;
-  const [rows, setRows] = useState<LeaderboardRow[]>([]);
-
-  useEffect(() => {
-    if (!pool) return;
-    let active = true;
-    fetch(`/api/leaderboard?pool=${pool}`)
-      .then((r) => (r.ok ? r.json() : { rows: [] }))
-      .then((d) => {
-        if (active) setRows(d.rows ?? []);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [pool]);
+  const { data } = useQuery({
+    queryKey: ["leaderboard", pool],
+    enabled: !!pool,
+    refetchInterval: 20_000,
+    refetchOnWindowFocus: true,
+    queryFn: async (): Promise<{ rows: LeaderboardRow[] }> => {
+      const r = await fetch(`/api/leaderboard?pool=${pool}`);
+      return r.ok ? r.json() : { rows: [] };
+    },
+  });
 
   if (!pool) return null;
-  return <LeaderboardView rows={rows} />;
+  return <LeaderboardView rows={data?.rows ?? []} />;
 }
