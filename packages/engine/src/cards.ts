@@ -2,8 +2,22 @@ import type { Card, GameState } from "./types.js";
 
 export function isValidSet(cards: Card[]): boolean {
   if (cards.length !== 3) return false;
+  const jokers = cards.filter((c) => c.symbol === "joker").length;
+  if (jokers >= 1) return true; // any 3 cards with a joker complete a set
   const symbols = new Set(cards.map((c) => c.symbol));
   return symbols.size === 1 || symbols.size === 3;
+}
+
+/** True if the hand contains at least one valid 3-card set (jokers included). */
+export function hasTradeableSet(cards: Card[]): boolean {
+  for (let i = 0; i < cards.length; i++) {
+    for (let j = i + 1; j < cards.length; j++) {
+      for (let k = j + 1; k < cards.length; k++) {
+        if (isValidSet([cards[i]!, cards[j]!, cards[k]!])) return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**

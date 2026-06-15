@@ -42,6 +42,19 @@ describe("isValidSet", () => {
   test("not exactly three is invalid", () => {
     expect(isValidSet([cards[0]!, cards[1]!])).toBe(false);
   });
+  test("a joker completes any pair (two same)", () => {
+    const joker: Card = { id: "j", territoryId: "", symbol: "joker" };
+    expect(isValidSet([cards[0]!, cards[3]!, joker])).toBe(true); // globo, globo, joker
+  });
+  test("a joker completes any pair (two different)", () => {
+    const joker: Card = { id: "j", territoryId: "", symbol: "joker" };
+    expect(isValidSet([cards[0]!, cards[1]!, joker])).toBe(true); // globo, canon, joker
+  });
+  test("two jokers plus one is valid", () => {
+    const j1: Card = { id: "j1", territoryId: "", symbol: "joker" };
+    const j2: Card = { id: "j2", territoryId: "", symbol: "joker" };
+    expect(isValidSet([cards[0]!, j1, j2])).toBe(true);
+  });
 });
 
 describe("tradeBonus", () => {

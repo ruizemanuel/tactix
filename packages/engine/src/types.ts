@@ -1,6 +1,6 @@
 export type PlayerId = string;
 export type TurnPhase = "reinforce" | "attack" | "fortify";
-export type CardSymbol = "globo" | "canon" | "barco";
+export type CardSymbol = "globo" | "canon" | "barco" | "joker";
 
 export interface Continent {
   id: string;

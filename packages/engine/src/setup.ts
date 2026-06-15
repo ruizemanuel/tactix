@@ -63,6 +63,10 @@ export function createGame(
     territoryId: t.id,
     symbol: SYMBOLS[idx % SYMBOLS.length]!,
   }));
+  deck.push(
+    { id: "card-joker-1", territoryId: "", symbol: "joker" },
+    { id: "card-joker-2", territoryId: "", symbol: "joker" },
+  );
   const shuffledDeck = shuffle(deck, rngState);
   rngState = shuffledDeck.state;
 

@@ -26,7 +26,8 @@ describe("createGame", () => {
 
   test("builds a deck with one card per territory and assigns objectives", () => {
     const s = createGame(fixtureMap, ["A", "B"], objectives, 7);
-    expect(s.deck).toHaveLength(9);
+    expect(s.deck).toHaveLength(11); // 9 country cards + 2 jokers
+    expect(s.deck.filter((c) => c.symbol === "joker")).toHaveLength(2);
     expect(s.players.map((p) => p.objectiveId).sort()).toEqual(["o-a", "o-b"]);
     expect(s.phase).toBe("reinforce");
     expect(s.currentPlayerIndex).toBe(0);

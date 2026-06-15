@@ -74,7 +74,7 @@ describe("replayWithEvents", () => {
   });
 
   it("emits AI events after the human ends their turn", () => {
-    const seed = 12345;
+    const seed = 6; // seed 12345 no longer has endTurn in "you" log after joker cards changed deck shuffle
     const { log } = playAndRecord(seed);
     // Trim to the first endTurn (inclusive) so the AI plays exactly one turn afterwards.
     const endTurnIdx = log.findIndex((a) => a.type === "endTurn");
