@@ -1,4 +1,4 @@
-// AUTO-GENERATED from contracts/artifacts/contracts/TegPool.sol/TegPool.json — regenerate after contract changes.
+// AUTO-GENERATED from contracts/artifacts/contracts/TegPool.sol/TegPool.json — run `pnpm gen:abi` after contract changes.
 export const tegPoolAbi = [
   {
     "inputs": [
