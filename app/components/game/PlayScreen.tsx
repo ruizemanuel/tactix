@@ -3,14 +3,9 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useGame } from "@/lib/game/store.js";
-import { selectableTerritories, resolveTap } from "@/lib/game/interaction.js";
-import { findTradeableSet } from "@teg/engine";
-import { WorldBoard } from "@/components/board/WorldBoard.js";
-import { ActionPanel } from "@/components/game/ActionPanel.js";
-import { StatusBar } from "@/components/game/StatusBar.js";
-import { CombatResult } from "@/components/game/CombatResult.js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher.js";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
+import { GameView } from "@/components/game/GameView.js";
 
 /** The crosshair "X" — used as the final letter of the TACTIX wordmark. */
 function CrosshairX({ className }: { className?: string }) {
@@ -33,7 +28,7 @@ function CrosshairX({ className }: { className?: string }) {
 export function PlayScreen() {
   const { t } = useI18n();
   const store = useGame();
-  const { state, selected, aiThinking } = store;
+  const { state } = store;
 
   useEffect(() => {
     if (!state) store.newGame();
@@ -42,33 +37,6 @@ export function PlayScreen() {
   }, []);
 
   if (!state) return null;
-
-  const humanTurn =
-    state.players[state.currentPlayerIndex]!.id === "you" && !aiThinking && !state.winnerId;
-  const selectable = humanTurn ? selectableTerritories(state, "you", selected) : [];
-  const youPlayer = state.players.find((p) => p.id === "you")!;
-  const tradeSet =
-    state.phase === "reinforce" && humanTurn ? findTradeableSet(youPlayer.cards) : null;
-
-  function onSelect(territoryId: string) {
-    if (!humanTurn || !state) return;
-    if (!selectable.includes(territoryId) && !(selected === territoryId)) return;
-    const tap = resolveTap(state, "you", selected, territoryId);
-    switch (tap.kind) {
-      case "select":
-        store.select(tap.territoryId);
-        break;
-      case "place":
-        store.place(tap.territoryId, state.pendingReinforcements);
-        break;
-      case "attack":
-        store.attack(tap.from, tap.to);
-        break;
-      case "fortify":
-        store.fortify(tap.from, tap.to, state.territories[tap.from]!.armies - 1);
-        break;
-    }
-  }
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-3 p-4">
@@ -154,22 +122,7 @@ export function PlayScreen() {
         </div>
       </header>
 
-      <StatusBar state={state} aiThinking={aiThinking} />
-
-      <WorldBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
-
-      <CombatResult combat={state.lastCombat} />
-
-      {humanTurn && (
-        <ActionPanel
-          state={state}
-          tradeSet={tradeSet}
-          onTradeCards={(ids) => store.tradeCards(ids)}
-          onEndReinforce={() => store.endReinforce()}
-          onEndAttack={() => store.endAttack()}
-          onEndTurn={() => void store.endTurn()}
-        />
-      )}
+      <GameView />
     </main>
   );
 }

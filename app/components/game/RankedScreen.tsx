@@ -7,12 +7,7 @@ import { useGame } from "@/lib/game/store.js";
 import { useTegPool } from "@/hooks/useTegPool.js";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { startRanked, submitRanked, type SubmitResult } from "@/lib/ranked/client.js";
-import { selectableTerritories, resolveTap } from "@/lib/game/interaction.js";
-import { findTradeableSet } from "@teg/engine";
-import { WorldBoard } from "@/components/board/WorldBoard.js";
-import { ActionPanel } from "@/components/game/ActionPanel.js";
-import { StatusBar } from "@/components/game/StatusBar.js";
-import { CombatResult } from "@/components/game/CombatResult.js";
+import { GameView } from "@/components/game/GameView.js";
 
 type Status = "idle" | "starting" | "playing" | "submitting" | "done" | "error";
 
@@ -21,7 +16,7 @@ export function RankedScreen() {
   const { address } = useAccount();
   const p = useTegPool();
   const store = useGame();
-  const { state, selected, aiThinking, ranked, actionLog } = store;
+  const { state, ranked, actionLog } = store;
 
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -69,31 +64,6 @@ export function RankedScreen() {
   if (status === "error") return <Centered>{t("ranked.error")}<LobbyLink t={t} /></Centered>;
   if (!state || status === "idle" || status === "starting") return <Centered>{t("ranked.starting")}</Centered>;
 
-  const humanTurn = state.players[state.currentPlayerIndex]!.id === "you" && !aiThinking && !state.winnerId;
-  const selectable = humanTurn ? selectableTerritories(state, "you", selected) : [];
-  const youPlayer = state.players.find((pl) => pl.id === "you")!;
-  const tradeSet = state.phase === "reinforce" && humanTurn ? findTradeableSet(youPlayer.cards) : null;
-
-  function onSelect(territoryId: string) {
-    if (!humanTurn || !state) return;
-    if (!selectable.includes(territoryId) && selected !== territoryId) return;
-    const tap = resolveTap(state, "you", selected, territoryId);
-    switch (tap.kind) {
-      case "select":
-        store.select(tap.territoryId);
-        break;
-      case "place":
-        store.place(tap.territoryId, state.pendingReinforcements);
-        break;
-      case "attack":
-        store.attack(tap.from, tap.to);
-        break;
-      case "fortify":
-        store.fortify(tap.from, tap.to, state.territories[tap.from]!.armies - 1);
-        break;
-    }
-  }
-
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-3 p-4">
       <header className="flex items-center justify-between">
@@ -109,9 +79,7 @@ export function RankedScreen() {
         </Link>
       </header>
 
-      <StatusBar state={state} aiThinking={aiThinking} />
-      <WorldBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
-      <CombatResult combat={state.lastCombat} />
+      <GameView interactive={status === "playing"} />
 
       {status === "submitting" && <p className="text-sm text-[var(--color-signal)]">{t("ranked.submitting")}</p>}
 
@@ -127,17 +95,6 @@ export function RankedScreen() {
             {t("lobby.backToLobby")}
           </Link>
         </div>
-      )}
-
-      {humanTurn && status === "playing" && (
-        <ActionPanel
-          state={state}
-          tradeSet={tradeSet}
-          onTradeCards={(ids) => store.tradeCards(ids)}
-          onEndReinforce={() => store.endReinforce()}
-          onEndAttack={() => store.endAttack()}
-          onEndTurn={() => void store.endTurn()}
-        />
       )}
     </main>
   );
