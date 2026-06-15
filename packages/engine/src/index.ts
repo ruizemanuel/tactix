@@ -25,4 +25,5 @@ export { HeuristicPlayer } from "./ai/heuristic.js";
 export { WORLD_OBJECTIVES, assignObjectives } from "./worldObjectives.js";
 export { computeScore, type ScoreBreakdown } from "./score.js";
 export { replayGame, type ReplayOpts, type ReplayResult } from "./replay.js";
+export { redactState, type RedactedGameState, type RedactedPlayer } from "./redact.js";
 export { continentsControlledBy } from "./reinforce.js";
