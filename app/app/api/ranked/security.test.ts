@@ -65,7 +65,7 @@ function noSecretKeys(json: unknown): { keys: Set<string>; vals: unknown[] } {
 // key name isn't in the denylist above.
 const VIEW_KEYS = new Set([
   "map", "players", "territories", "objectives", "currentPlayerIndex", "phase",
-  "turnNumber", "pendingReinforcements", "conqueredThisTurn", "deckCount", "lastCombat", "winnerId",
+  "turnNumber", "pendingReinforcements", "conquestsThisTurn", "deckCount", "lastCombat", "winnerId",
 ]);
 const PLAYER_KEYS = new Set(["id", "alive", "cardTradeIns", "cardCount", "cards", "objectiveId"]);
 

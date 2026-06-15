@@ -21,7 +21,7 @@ function attackState(fromArmies: number, toArmies: number, seed: number): GameSt
     phase: "attack",
     turnNumber: 1,
     pendingReinforcements: 0,
-    conqueredThisTurn: false,
+    conquestsThisTurn: 0,
     deck: [],
     rngState: seed,
     lastCombat: null,

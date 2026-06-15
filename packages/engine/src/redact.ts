@@ -34,7 +34,7 @@ export interface RedactedGameState {
   phase: TurnPhase;
   turnNumber: number;
   pendingReinforcements: number;
-  conqueredThisTurn: boolean;
+  conquestsThisTurn: number;
   deckCount: number;
   lastCombat: CombatResult | null;
   winnerId: PlayerId | null;
@@ -67,7 +67,7 @@ export function redactState(state: GameState, viewerId: PlayerId): RedactedGameS
     phase: state.phase,
     turnNumber: state.turnNumber,
     pendingReinforcements: state.pendingReinforcements,
-    conqueredThisTurn: state.conqueredThisTurn,
+    conquestsThisTurn: state.conquestsThisTurn,
     deckCount: state.deck.length,
     lastCombat: state.lastCombat,
     winnerId: state.winnerId,

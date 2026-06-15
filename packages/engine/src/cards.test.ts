@@ -20,7 +20,7 @@ function stateWithCards(hand: Card[], tradeIns = 0): GameState {
     phase: "reinforce",
     turnNumber: 1,
     pendingReinforcements: 3,
-    conqueredThisTurn: false,
+    conquestsThisTurn: 0,
     deck: [],
     rngState: 1,
     lastCombat: null,

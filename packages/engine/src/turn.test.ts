@@ -44,7 +44,7 @@ describe("applyAction — phase transitions", () => {
 
   test("a player who conquered draws a card on endTurn", () => {
     let s = freshReinforceState();
-    s = { ...s, phase: "fortify", conqueredThisTurn: true };
+    s = { ...s, phase: "fortify", conquestsThisTurn: 1 };
     const handBefore = s.players[0]!.cards.length;
     const deckBefore = s.deck.length;
     s = applyAction(s, { type: "endTurn" });
@@ -66,5 +66,40 @@ describe("applyAction — phase transitions", () => {
       guard++;
     }
     expect(s.winnerId).toBe("A");
+  });
+});
+
+describe("card-draw threshold (2 conquests after 3 trades)", () => {
+  function fortifyWith(conquests: number, tradeIns: number): GameState {
+    const s = freshReinforceState();
+    const players = s.players.map((p, i) => (i === 0 ? { ...p, cardTradeIns: tradeIns } : p));
+    return { ...s, players, phase: "fortify", conquestsThisTurn: conquests };
+  }
+
+  test("draws with 1 conquest when fewer than 3 trades done", () => {
+    const s = fortifyWith(1, 2);
+    const before = s.players[0]!.cards.length;
+    const next = applyAction(s, { type: "endTurn" });
+    expect(next.players[0]!.cards.length).toBe(before + 1);
+  });
+
+  test("after 3 trades, 1 conquest is NOT enough to draw", () => {
+    const s = fortifyWith(1, 3);
+    const before = s.players[0]!.cards.length;
+    const next = applyAction(s, { type: "endTurn" });
+    expect(next.players[0]!.cards.length).toBe(before);
+  });
+
+  test("after 3 trades, 2 conquests draws", () => {
+    const s = fortifyWith(2, 3);
+    const before = s.players[0]!.cards.length;
+    const next = applyAction(s, { type: "endTurn" });
+    expect(next.players[0]!.cards.length).toBe(before + 1);
+  });
+
+  test("conquestsThisTurn resets to 0 after endTurn", () => {
+    const s = fortifyWith(2, 0);
+    const next = applyAction(s, { type: "endTurn" });
+    expect(next.conquestsThisTurn).toBe(0);
   });
 });

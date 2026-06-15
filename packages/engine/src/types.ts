@@ -78,7 +78,7 @@ export interface GameState {
   phase: TurnPhase;
   turnNumber: number;
   pendingReinforcements: number;
-  conqueredThisTurn: boolean;
+  conquestsThisTurn: number;
   deck: Card[];
   rngState: number;
   lastCombat: CombatResult | null;

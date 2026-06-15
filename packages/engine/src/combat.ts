@@ -60,6 +60,6 @@ export function resolveAttack(state: GameState, from: string, to: string): GameS
     territories,
     rngState: d.state,
     lastCombat,
-    conqueredThisTurn: state.conqueredThisTurn || conquered,
+    conquestsThisTurn: state.conquestsThisTurn + (conquered ? 1 : 0),
   };
 }

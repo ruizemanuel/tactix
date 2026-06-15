@@ -21,7 +21,7 @@ function fortifyState(): GameState {
     phase: "fortify",
     turnNumber: 1,
     pendingReinforcements: 0,
-    conqueredThisTurn: false,
+    conquestsThisTurn: 0,
     deck: [],
     rngState: 1,
     lastCombat: null,

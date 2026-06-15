@@ -27,7 +27,7 @@ export function rehydrateView(v: RedactedGameState): GameState {
     phase: v.phase,
     turnNumber: v.turnNumber,
     pendingReinforcements: v.pendingReinforcements,
-    conqueredThisTurn: v.conqueredThisTurn,
+    conquestsThisTurn: v.conquestsThisTurn,
     deck: placeholders(v.deckCount),
     rngState: 0,
     lastCombat: v.lastCombat,

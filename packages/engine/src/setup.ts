@@ -75,7 +75,7 @@ export function createGame(
     phase: "reinforce",
     turnNumber: 1,
     pendingReinforcements: 0,
-    conqueredThisTurn: false,
+    conquestsThisTurn: 0,
     deck: shuffledDeck.items,
     rngState,
     lastCombat: null,

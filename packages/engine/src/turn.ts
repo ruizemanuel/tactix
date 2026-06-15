@@ -25,7 +25,9 @@ function nextAlivePlayerIndex(state: GameState): number {
 function endTurn(state: GameState): GameState {
   let next = withEliminationFlags(state);
 
-  if (next.conqueredThisTurn && next.deck.length > 0) {
+  const drawer = next.players[next.currentPlayerIndex]!;
+  const required = drawer.cardTradeIns >= 3 ? 2 : 1;
+  if (next.conquestsThisTurn >= required && next.deck.length > 0) {
     const [drawn, ...rest] = next.deck;
     const players = next.players.map((p, i) =>
       i === next.currentPlayerIndex ? { ...p, cards: [...p.cards, drawn!] } : p,
@@ -39,7 +41,7 @@ function endTurn(state: GameState): GameState {
     currentPlayerIndex: idx,
     phase: "reinforce",
     turnNumber: next.turnNumber + 1,
-    conqueredThisTurn: false,
+    conquestsThisTurn: 0,
     lastCombat: null,
     pendingReinforcements: 0,
   };

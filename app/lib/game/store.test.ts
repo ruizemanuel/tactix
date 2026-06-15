@@ -67,7 +67,7 @@ test("a full game played by auto-ending human turns terminates with a winner", a
 });
 
 test("startRankedGame stores the session + renders the server view", () => {
-  const view = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "reinforce", turnNumber: 1, pendingReinforcements: 3, conqueredThisTurn: false, deckCount: 32, lastCombat: null, winnerId: null };
+  const view = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "reinforce", turnNumber: 1, pendingReinforcements: 3, conquestsThisTurn: 0, deckCount: 32, lastCombat: null, winnerId: null };
   useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: view as never });
   expect(useGame.getState().ranked).toEqual({ gameId: "g1", sessionToken: "tok", version: 0 });
   expect(useGame.getState().state!.rngState).toBe(0); // rehydrated, no real rng
@@ -75,7 +75,7 @@ test("startRankedGame stores the session + renders the server view", () => {
 });
 
 test("a ranked action posts to the server and applies the returned view + version", async () => {
-  const baseView = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "attack", turnNumber: 1, pendingReinforcements: 0, conqueredThisTurn: false, deckCount: 32, lastCombat: null, winnerId: null };
+  const baseView = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "attack", turnNumber: 1, pendingReinforcements: 0, conquestsThisTurn: 0, deckCount: 32, lastCombat: null, winnerId: null };
   useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: { ...baseView, phase: "reinforce", pendingReinforcements: 3 } as never });
   (client.sendAction as ReturnType<typeof vi.fn>).mockResolvedValue({ version: 1, view: baseView, frames: [] });
 

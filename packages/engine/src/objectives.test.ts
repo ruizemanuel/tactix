@@ -18,7 +18,7 @@ function stateWith(owner: Record<string, string>, objectives: Objective[], objAB
     phase: "attack",
     turnNumber: 1,
     pendingReinforcements: 0,
-    conqueredThisTurn: false,
+    conquestsThisTurn: 0,
     deck: [],
     rngState: 1,
     lastCombat: null,
