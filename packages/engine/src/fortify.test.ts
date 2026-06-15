@@ -25,6 +25,7 @@ function fortifyState(): GameState {
     deck: [],
     rngState: 1,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
 }

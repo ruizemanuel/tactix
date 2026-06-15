@@ -79,6 +79,7 @@ export function createGame(
     deck: shuffledDeck.items,
     rngState,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
   return { ...state, pendingReinforcements: reinforcementsFor(state, players[0]!.id) };

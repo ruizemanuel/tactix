@@ -4,6 +4,7 @@ import type {
   GameMap,
   GameState,
   Objective,
+  PendingOccupation,
   PlayerId,
   TerritoryState,
   TurnPhase,
@@ -37,6 +38,7 @@ export interface RedactedGameState {
   conquestsThisTurn: number;
   deckCount: number;
   lastCombat: CombatResult | null;
+  pendingOccupation: PendingOccupation | null;
   winnerId: PlayerId | null;
 }
 
@@ -70,6 +72,7 @@ export function redactState(state: GameState, viewerId: PlayerId): RedactedGameS
     conquestsThisTurn: state.conquestsThisTurn,
     deckCount: state.deck.length,
     lastCombat: state.lastCombat,
+    pendingOccupation: state.pendingOccupation,
     winnerId: state.winnerId,
   };
 }

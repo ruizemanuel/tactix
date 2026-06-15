@@ -32,6 +32,7 @@ function makeState(
     deck: [],
     rngState: 1,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
 }

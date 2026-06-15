@@ -69,6 +69,12 @@ export interface CombatResult {
   conquered: boolean;
 }
 
+export interface PendingOccupation {
+  from: string;
+  to: string;
+  max: number;
+}
+
 export interface GameState {
   map: GameMap;
   players: PlayerState[];
@@ -82,6 +88,7 @@ export interface GameState {
   deck: Card[];
   rngState: number;
   lastCombat: CombatResult | null;
+  pendingOccupation: PendingOccupation | null;
   winnerId: PlayerId | null;
 }
 
@@ -92,4 +99,5 @@ export type Action =
   | { type: "attack"; from: string; to: string }
   | { type: "endAttack" }
   | { type: "fortify"; from: string; to: string; armies: number }
-  | { type: "endTurn" };
+  | { type: "endTurn" }
+  | { type: "occupy"; armies: number };

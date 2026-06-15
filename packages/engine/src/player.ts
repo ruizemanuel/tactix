@@ -49,6 +49,9 @@ export class RandomPlayer implements Player {
   }
 
   decide(state: GameState): Action {
+    if (state.pendingOccupation) {
+      return { type: "occupy", armies: 1 };
+    }
     const me = this.id;
     if (state.phase === "reinforce") {
       if (state.pendingReinforcements > 0) {

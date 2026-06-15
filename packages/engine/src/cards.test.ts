@@ -24,6 +24,7 @@ function stateWithCards(hand: Card[], tradeIns = 0): GameState {
     deck: [],
     rngState: 1,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
 }

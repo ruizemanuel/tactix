@@ -103,3 +103,54 @@ describe("card-draw threshold (2 conquests after 3 trades)", () => {
     expect(next.conquestsThisTurn).toBe(0);
   });
 });
+
+describe("occupy (conquest-move choice)", () => {
+  function conqueredState(): GameState {
+    let s = freshReinforceState();
+    const territories = Object.fromEntries(
+      Object.keys(s.territories).map((id) => [id, { ownerId: "A", armies: 2 }]),
+    ) as GameState["territories"];
+    territories.s1 = { ownerId: "B", armies: 1 };
+    territories.n3 = { ownerId: "A", armies: 8 };
+    s = { ...s, territories, phase: "attack" };
+    let guard = 0;
+    while (s.pendingOccupation === null && s.winnerId === null && guard < 50) {
+      s = applyAction(s, { type: "attack", from: "n3", to: "s1" });
+      guard++;
+    }
+    return s;
+  }
+
+  test("a conquest blocks every action except occupy", () => {
+    const s = conqueredState();
+    if (s.winnerId !== null) return;
+    expect(s.pendingOccupation).not.toBeNull();
+    expect(() => applyAction(s, { type: "endAttack" })).toThrow(/occupation/i);
+    expect(() => applyAction(s, { type: "attack", from: "n3", to: "s2" })).toThrow(/occupation/i);
+  });
+
+  test("occupy moves the chosen armies and clears the pending state", () => {
+    const s = conqueredState();
+    if (s.winnerId !== null) return;
+    const from = s.pendingOccupation!.from;
+    const to = s.pendingOccupation!.to;
+    const fromBefore = s.territories[from]!.armies;
+    const next = applyAction(s, { type: "occupy", armies: 1 });
+    expect(next.pendingOccupation).toBeNull();
+    expect(next.territories[to]!.armies).toBe(1);
+    expect(next.territories[from]!.armies).toBe(fromBefore - 1);
+  });
+
+  test("occupy rejects an out-of-range amount", () => {
+    const s = conqueredState();
+    if (s.winnerId !== null) return;
+    const max = s.pendingOccupation!.max;
+    expect(() => applyAction(s, { type: "occupy", armies: 0 })).toThrow(/occupy/i);
+    expect(() => applyAction(s, { type: "occupy", armies: max + 1 })).toThrow(/occupy/i);
+  });
+
+  test("occupy with no pending occupation throws", () => {
+    const s = freshReinforceState();
+    expect(() => applyAction(s, { type: "occupy", armies: 1 })).toThrow(/no occupation/i);
+  });
+});

@@ -15,6 +15,9 @@ export class HeuristicPlayer implements Player {
   constructor(public readonly id: PlayerId) {}
 
   decide(state: GameState): Action {
+    if (state.pendingOccupation) {
+      return { type: "occupy", armies: state.pendingOccupation.max };
+    }
     const me = this.id;
     const player = state.players.find((p) => p.id === me)!;
 

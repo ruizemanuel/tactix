@@ -31,6 +31,7 @@ export function rehydrateView(v: RedactedGameState): GameState {
     deck: placeholders(v.deckCount),
     rngState: 0,
     lastCombat: v.lastCombat,
+    pendingOccupation: v.pendingOccupation,
     winnerId: v.winnerId,
   };
 }

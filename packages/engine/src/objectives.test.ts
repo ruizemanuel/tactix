@@ -22,6 +22,7 @@ function stateWith(owner: Record<string, string>, objectives: Objective[], objAB
     deck: [],
     rngState: 1,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
 }

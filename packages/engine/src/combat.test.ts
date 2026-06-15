@@ -25,6 +25,7 @@ function attackState(fromArmies: number, toArmies: number, seed: number): GameSt
     deck: [],
     rngState: seed,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
 }
@@ -41,7 +42,7 @@ describe("resolveAttack", () => {
     expect(totalAfter).toBe(totalBefore - pairs);
   });
 
-  test("conquest transfers ownership and moves armies in", () => {
+  test("conquest transfers ownership with 0 armies and sets a pending occupation", () => {
     let s = attackState(8, 1, 7);
     let guard = 0;
     while (s.territories.s1!.ownerId === "B" && guard < 50) {
@@ -49,8 +50,13 @@ describe("resolveAttack", () => {
       guard++;
     }
     expect(s.territories.s1!.ownerId).toBe("A");
-    expect(s.territories.s1!.armies).toBeGreaterThanOrEqual(1);
+    expect(s.territories.s1!.armies).toBe(0); // awaiting occupation
     expect(s.lastCombat!.conquered).toBe(true);
+    expect(s.pendingOccupation).not.toBeNull();
+    expect(s.pendingOccupation!.from).toBe("n3");
+    expect(s.pendingOccupation!.to).toBe("s1");
+    expect(s.pendingOccupation!.max).toBeGreaterThanOrEqual(1);
+    expect(s.pendingOccupation!.max).toBeLessThanOrEqual(3);
   });
 
   test("is deterministic for a given seed", () => {

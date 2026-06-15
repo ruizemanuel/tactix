@@ -50,6 +50,9 @@ function endTurn(state: GameState): GameState {
 
 export function applyAction(state: GameState, action: Action): GameState {
   if (state.winnerId !== null) throw new Error("Game is already over");
+  if (state.pendingOccupation && action.type !== "occupy") {
+    throw new Error("Must resolve the occupation first");
+  }
 
   switch (action.type) {
     case "place":
@@ -67,8 +70,20 @@ export function applyAction(state: GameState, action: Action): GameState {
     case "attack": {
       const after = resolveAttack(state, action.from, action.to);
       const me = after.players[after.currentPlayerIndex]!.id;
-      if (checkWin(after, me)) return { ...after, winnerId: me };
-      return after;
+      if (checkWin(after, me)) return { ...after, winnerId: me, pendingOccupation: null };
+      return after; // a conquest leaves pendingOccupation set → next action must be occupy
+    }
+
+    case "occupy": {
+      if (!state.pendingOccupation) throw new Error("No occupation pending");
+      const { from, to, max } = state.pendingOccupation;
+      if (action.armies < 1 || action.armies > max) throw new Error("Invalid occupy amount");
+      const territories = {
+        ...state.territories,
+        [from]: { ...state.territories[from]!, armies: state.territories[from]!.armies - action.armies },
+        [to]: { ...state.territories[to]!, armies: action.armies },
+      };
+      return { ...state, territories, pendingOccupation: null };
     }
 
     case "endAttack": {

@@ -23,6 +23,7 @@ function baseState(owner: Record<string, string>): GameState {
     deck: [],
     rngState: 1,
     lastCombat: null,
+    pendingOccupation: null,
     winnerId: null,
   };
 }

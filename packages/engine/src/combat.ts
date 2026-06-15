@@ -37,9 +37,9 @@ export function resolveAttack(state: GameState, from: string, to: string): GameS
 
   if (newToArmies <= 0) {
     conquered = true;
-    const moving = Math.min(3, newFromArmies - 1);
-    territories[from] = { ...fromTs, armies: newFromArmies - moving };
-    territories[to] = { ownerId: current.id, armies: moving };
+    // Ownership transfers now with 0 armies; the player chooses the move via `occupy`.
+    territories[from] = { ...fromTs, armies: newFromArmies };
+    territories[to] = { ownerId: current.id, armies: 0 };
   } else {
     territories[from] = { ...fromTs, armies: newFromArmies };
     territories[to] = { ...toTs, armies: newToArmies };
@@ -55,11 +55,15 @@ export function resolveAttack(state: GameState, from: string, to: string): GameS
     conquered,
   };
 
+  const max = conquered ? Math.min(3, newFromArmies - 1) : 0;
+  const pendingOccupation = conquered && max >= 1 ? { from, to, max } : null;
+
   return {
     ...state,
     territories,
     rngState: d.state,
     lastCombat,
     conquestsThisTurn: state.conquestsThisTurn + (conquered ? 1 : 0),
+    pendingOccupation,
   };
 }
