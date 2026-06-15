@@ -22,6 +22,6 @@ describe("ranked client", () => {
 
   it("submitRanked throws on a non-ok response", async () => {
     (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false, status: 400, text: async () => "illegal" });
-    await expect(submitRanked("g1", [])).rejects.toThrow(/400/);
+    await expect(submitRanked("g1", [], "0xsig")).rejects.toThrow(/400/);
   });
 });

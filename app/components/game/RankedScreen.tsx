@@ -2,19 +2,22 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
 import { useGame } from "@/lib/game/store.js";
 import { useTegPool } from "@/hooks/useTegPool.js";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { startRanked, submitRanked, type SubmitResult } from "@/lib/ranked/client.js";
+import { buildSubmitMessage } from "@/lib/ranked/submitMessage.js";
+import { CONFIGURED_CHAIN_ID } from "@/lib/contracts/addresses.js";
 import { GameView } from "@/components/game/GameView.js";
 
-type Status = "idle" | "starting" | "playing" | "submitting" | "done" | "error";
+type Status = "idle" | "starting" | "playing" | "submitting" | "needsSig" | "done" | "error";
 
 export function RankedScreen() {
   const { t } = useI18n();
   const { address } = useAccount();
   const p = useTegPool();
+  const { signMessageAsync } = useSignMessage();
   const store = useGame();
   const { state, ranked, actionLog } = store;
 
@@ -41,6 +44,29 @@ export function RankedScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, pool, playable]);
 
+  // Sign the canonical submit message (personal_sign) and POST the score.
+  // On signature rejection we land in "needsSig" so the player can retry
+  // without losing the game (the gameId stays open).
+  async function signAndSubmit() {
+    if (!ranked || !pool) return;
+    setStatus("submitting");
+    let signature: string;
+    try {
+      const message = buildSubmitMessage({ pool, gameId: ranked.gameId, chainId: CONFIGURED_CHAIN_ID });
+      signature = await signMessageAsync({ message });
+    } catch {
+      setStatus("needsSig");
+      return;
+    }
+    try {
+      const r = await submitRanked(ranked.gameId, actionLog, signature);
+      setResult(r);
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
+  }
+
   // actionLog is intentionally NOT in this effect's deps: it's read at game-over
   // via the store's current value. Zustand re-renders this component when
   // state.winnerId flips, so the effect already sees the final log; adding
@@ -49,13 +75,7 @@ export function RankedScreen() {
   useEffect(() => {
     if (submittedRef.current || status !== "playing" || !state || !ranked || state.winnerId === null) return;
     submittedRef.current = true;
-    setStatus("submitting");
-    submitRanked(ranked.gameId, actionLog)
-      .then((r) => {
-        setResult(r);
-        setStatus("done");
-      })
-      .catch(() => setStatus("error"));
+    void signAndSubmit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, state?.winnerId, ranked]);
 
@@ -82,6 +102,19 @@ export function RankedScreen() {
       <GameView interactive={status === "playing"} />
 
       {status === "submitting" && <p className="text-sm text-[var(--color-signal)]">{t("ranked.submitting")}</p>}
+
+      {status === "needsSig" && (
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--color-hairline-2)] p-4 text-center">
+          <p className="text-sm text-[var(--color-muted)]">{t("ranked.signPrompt")}</p>
+          <button
+            type="button"
+            onClick={() => void signAndSubmit()}
+            className="rounded-xl bg-[var(--color-you)] px-4 py-2 text-sm font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110"
+          >
+            {t("ranked.signAndSubmit")}
+          </button>
+        </div>
+      )}
 
       {status === "done" && result && (
         <div className="rounded-xl border border-[var(--color-hairline-2)] p-4 text-center">
