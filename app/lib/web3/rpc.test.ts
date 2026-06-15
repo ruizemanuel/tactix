@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { resolveRpcUrls } from "./rpc.js";
+import { resolveRpcUrls, readTransport } from "./rpc.js";
 
 describe("resolveRpcUrls", () => {
   test("keeps primary then fallback, in order", () => {
@@ -10,5 +10,13 @@ describe("resolveRpcUrls", () => {
     expect(resolveRpcUrls(undefined, "https://b")).toEqual(["https://b"]);
     expect(resolveRpcUrls("", "https://b")).toEqual(["https://b"]);
     expect(resolveRpcUrls(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe("readTransport", () => {
+  test("returns a Transport for each URL count without throwing", () => {
+    expect(typeof readTransport()).toBe("function");
+    expect(typeof readTransport("https://a")).toBe("function");
+    expect(typeof readTransport("https://a", "https://b")).toBe("function");
   });
 });

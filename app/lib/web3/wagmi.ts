@@ -9,12 +9,14 @@ import { readTransport } from "@/lib/web3/rpc.js";
 const CELO_RPC = process.env.NEXT_PUBLIC_RPC_URL ?? "https://forno.celo.org";
 const CELO_RPC_FALLBACK = process.env.NEXT_PUBLIC_RPC_URL_FALLBACK ?? "https://celo.drpc.org";
 
+// Injected only (MiniPay injects an EIP-1193 provider). WalletConnect is a future add.
+// `hardhat` (31337) is included so local-node / mock-connector flows resolve a chain.
 export const config = createConfig({
   chains: [celo, celoSepolia, hardhat],
   connectors: [injected({ shimDisconnect: true })],
   transports: {
     [celo.id]: readTransport(CELO_RPC, CELO_RPC_FALLBACK),
-    [celoSepolia.id]: readTransport(process.env.NEXT_PUBLIC_RPC_URL_SEPOLIA),
+    [celoSepolia.id]: readTransport(process.env.NEXT_PUBLIC_RPC_URL_SEPOLIA), // testnet: chain-default RPC, no fallback needed
     [hardhat.id]: http("http://127.0.0.1:8545"),
   },
   ssr: true,
