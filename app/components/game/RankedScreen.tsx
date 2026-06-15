@@ -46,6 +46,10 @@ export function RankedScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, pool, playable]);
 
+  // actionLog is intentionally NOT in this effect's deps: it's read at game-over
+  // via the store's current value. Zustand re-renders this component when
+  // state.winnerId flips, so the effect already sees the final log; adding
+  // actionLog to deps would re-fire it mid-game on every recorded action.
   // Submit exactly once, when the ranked game ends.
   useEffect(() => {
     if (submittedRef.current || status !== "playing" || !state || !ranked || state.winnerId === null) return;
