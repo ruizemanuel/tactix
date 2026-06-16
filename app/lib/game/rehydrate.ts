@@ -7,9 +7,11 @@ function placeholders(n: number): Card[] {
 
 /**
  * Turn a server-sent redacted view back into a `GameState` so the existing
- * board/status/panel components render unchanged. The blanked fields
- * (`rngState`, `deck`, opponents' `cards`/`objectiveId`) are never read in
- * ranked mode — the store never calls `applyAction` on a rehydrated state.
+ * board/status/panel components render unchanged. Hidden info is reconstructed
+ * only for shape: an opponent's `cards` become `placeholders(cardCount)` (count-
+ * accurate, identity-free) and `rngState`/`deck`/opponent `objectiveId` are
+ * blanked. These are safe because ranked mode never calls `applyAction` on a
+ * rehydrated state — the server is the only authority.
  */
 export function rehydrateView(v: RedactedGameState): GameState {
   return {

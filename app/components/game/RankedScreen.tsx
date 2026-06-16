@@ -20,7 +20,7 @@ export function RankedScreen() {
   const p = useTegPool();
   const { signMessageAsync } = useSignMessage();
   const store = useGame();
-  const { state, ranked, rankedError } = store;
+  const { state, ranked, rankedError, aiThinking } = store;
 
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -47,6 +47,8 @@ export function RankedScreen() {
         setStatus("error");
         track("ranked_start_failed");
       });
+    // Run once per (address, pool, playable) transition (startedRef guards re-entry);
+    // intentionally not re-run on every store/handler change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, pool, playable]);
 
@@ -86,13 +88,15 @@ export function RankedScreen() {
   }
 
   // Finalize exactly once, when the ranked game ends (winnerId flips on the view).
+  // Wait for !aiThinking so an AI-win finalize fires AFTER its frame animation
+  // settles (otherwise the sign prompt pops a beat early, mid-animation).
   useEffect(() => {
-    if (submittedRef.current || status !== "playing" || !state || !ranked || state.winnerId === null) return;
+    if (submittedRef.current || status !== "playing" || !state || !ranked || state.winnerId === null || aiThinking) return;
     submittedRef.current = true;
     track("ranked_finished", { won: state.winnerId === "you" });
     void signAndFinalize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, state?.winnerId, ranked]);
+  }, [status, state?.winnerId, ranked, aiThinking]);
 
   if (!address) return <Centered>{t("ranked.connectFirst")}<LobbyLink t={t} /></Centered>;
   if (!playable) return <Centered>{t("ranked.notJoined")}<LobbyLink t={t} /></Centered>;
