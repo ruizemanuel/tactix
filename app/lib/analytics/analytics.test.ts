@@ -71,7 +71,7 @@ describe("analytics", () => {
     trackPageview("/play/ranked");
     expect(mockPosthog.capture).toHaveBeenCalledWith("pool_joined", undefined);
     expect(mockPosthog.capture).toHaveBeenCalledWith("score_finalized", { won: true, score: 1076 });
-    expect(mockPosthog.capture).toHaveBeenCalledWith("$pageview", { $current_url: "/play/ranked" });
+    expect(mockPosthog.capture).toHaveBeenCalledWith("$pageview", { $current_url: expect.stringContaining("/play/ranked") });
   });
 
   it("swallows a capture error (never throws into the app)", async () => {

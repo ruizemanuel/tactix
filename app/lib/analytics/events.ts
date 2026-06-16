@@ -8,6 +8,7 @@ export type AnalyticsEvent =
   | "pool_join_failed"
   | "deposit_withdrawn"
   | "prize_claimed"
+  | "emergency_withdrawn"
   | "ranked_started"
   | "ranked_start_failed"
   | "ranked_finished"
@@ -34,7 +35,7 @@ export function trackPageview(path: string): void {
   const ph = getPosthog();
   if (!ph) return;
   try {
-    ph.capture("$pageview", { $current_url: path });
+    ph.capture("$pageview", { $current_url: window.location.origin + path });
   } catch {
     // ignore
   }
