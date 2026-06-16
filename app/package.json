@@ -19,6 +19,7 @@
     "drizzle-orm": "^0.45.2",
     "next": "16.2.6",
     "postgres": "^3.4.9",
+    "posthog-js": "^1.386.8",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tailwind-merge": "^3.6.0",
