@@ -7,7 +7,7 @@ export { worldMap } from "./map/worldMap.js";
 export { nextUint32, nextInt, rollDie, rollDice } from "./rng.js";
 export { createGame } from "./setup.js";
 export { reinforcementsFor, placeReinforcement, ownedTerritoryIds } from "./reinforce.js";
-export { isValidSet, tradeBonus, tradeCards, hasTradeableSet } from "./cards.js";
+export { isValidSet, tradeBonus, tradeCards, hasTradeableSet, findTradeableSet } from "./cards.js";
 export { resolveAttack } from "./combat.js";
 export { fortify } from "./fortify.js";
 export { checkObjective, checkWin, commonTarget } from "./objectives.js";
@@ -19,7 +19,6 @@ export {
   bestReinforceTarget,
   bestAttack,
   bestFortify,
-  findTradeableSet,
 } from "./ai/analysis.js";
 export { HeuristicPlayer } from "./ai/heuristic.js";
 export { WORLD_OBJECTIVES, assignObjectives } from "./worldObjectives.js";

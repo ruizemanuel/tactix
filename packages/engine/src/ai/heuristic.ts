@@ -1,4 +1,5 @@
-import { bestAttack, bestFortify, bestReinforceTarget, findTradeableSet } from "./analysis.js";
+import { bestAttack, bestFortify, bestReinforceTarget } from "./analysis.js";
+import { findTradeableSet } from "../cards.js";
 import type { Action, GameState, PlayerId } from "../types.js";
 import type { Player } from "../player.js";
 

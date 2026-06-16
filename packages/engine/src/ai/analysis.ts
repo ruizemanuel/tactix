@@ -1,4 +1,3 @@
-import { isValidSet } from "../cards.js";
 import { neighborsOf } from "../map/lookup.js";
 import { ownedTerritoryIds } from "../reinforce.js";
 import type { Card, GameState, PlayerId } from "../types.js";
@@ -32,19 +31,6 @@ export function bestReinforceTarget(state: GameState, me: PlayerId): string {
     }
   }
   return best;
-}
-
-/** First 3 cards in the hand forming a valid set (3 same OR 3 distinct symbols). */
-export function findTradeableSet(cards: Card[]): string[] | null {
-  for (let i = 0; i < cards.length; i++) {
-    for (let j = i + 1; j < cards.length; j++) {
-      for (let k = j + 1; k < cards.length; k++) {
-        const trio = [cards[i]!, cards[j]!, cards[k]!];
-        if (isValidSet(trio)) return trio.map((c) => c.id);
-      }
-    }
-  }
-  return null;
 }
 
 /**

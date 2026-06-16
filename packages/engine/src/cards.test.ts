@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { isValidSet, tradeBonus, tradeCards } from "./cards.js";
+import { isValidSet, tradeBonus, tradeCards, findTradeableSet } from "./cards.js";
 import type { Card, GameState } from "./types.js";
 
 const cards: Card[] = [
@@ -105,5 +105,24 @@ describe("tradeCards", () => {
   test("throws on duplicate card ids (cannot trade a 2-card hand as three)", () => {
     const s = stateWithCards([cards[0]!, cards[3]!]); // c1 globo, c4 globo
     expect(() => tradeCards(s, ["c1", "c1", "c4"])).toThrow(/3 distinct/i);
+  });
+});
+
+describe("findTradeableSet", () => {
+  const card = (id: string, symbol: Card["symbol"]): Card => ({ id, territoryId: id, symbol });
+
+  test("finds three distinct symbols", () => {
+    const hand = [card("a", "globo"), card("b", "canon"), card("c", "barco")];
+    expect(findTradeableSet(hand)).toEqual(["a", "b", "c"]);
+  });
+
+  test("finds three of the same symbol among a larger hand", () => {
+    const hand = [card("a", "globo"), card("b", "canon"), card("c", "globo"), card("d", "globo")];
+    expect(findTradeableSet(hand)).toEqual(["a", "c", "d"]);
+  });
+
+  test("returns null when no valid set exists", () => {
+    const hand = [card("a", "globo"), card("b", "globo"), card("c", "canon")];
+    expect(findTradeableSet(hand)).toBeNull();
   });
 });

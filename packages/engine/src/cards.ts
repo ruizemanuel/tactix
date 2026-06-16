@@ -8,16 +8,23 @@ export function isValidSet(cards: Card[]): boolean {
   return symbols.size === 1 || symbols.size === 3;
 }
 
-/** True if the hand contains at least one valid 3-card set (jokers included). */
-export function hasTradeableSet(cards: Card[]): boolean {
+/** First 3 cards in the hand forming a valid set (3 same OR 3 distinct symbols,
+ *  or any trio with a joker), as their ids — or null if none. */
+export function findTradeableSet(cards: Card[]): string[] | null {
   for (let i = 0; i < cards.length; i++) {
     for (let j = i + 1; j < cards.length; j++) {
       for (let k = j + 1; k < cards.length; k++) {
-        if (isValidSet([cards[i]!, cards[j]!, cards[k]!])) return true;
+        const trio = [cards[i]!, cards[j]!, cards[k]!];
+        if (isValidSet(trio)) return trio.map((c) => c.id);
       }
     }
   }
-  return false;
+  return null;
+}
+
+/** True if the hand contains at least one valid 3-card set (jokers included). */
+export function hasTradeableSet(cards: Card[]): boolean {
+  return findTradeableSet(cards) !== null;
 }
 
 /**

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { borderTerritories, bestReinforceTarget, findTradeableSet, bestAttack, bestFortify } from "./analysis.js";
+import { borderTerritories, bestReinforceTarget, bestAttack, bestFortify } from "./analysis.js";
 import { fixtureMap } from "../map/fixture.js";
-import type { Card, GameState, Objective, TurnPhase } from "../types.js";
+import type { GameState, Objective, TurnPhase } from "../types.js";
 
 /** Build a full-map state: every territory defaults to B/1, then apply overrides. */
 function makeState(
@@ -53,25 +53,6 @@ describe("bestReinforceTarget", () => {
   test("picks the border closest to a breakthrough (own armies − weakest adjacent enemy)", () => {
     const s = makeState({ n3: { owner: "A", armies: 5 }, s3: { owner: "A", armies: 2 } });
     expect(bestReinforceTarget(s, "A")).toBe("n3");
-  });
-});
-
-describe("findTradeableSet", () => {
-  const card = (id: string, symbol: Card["symbol"]): Card => ({ id, territoryId: id, symbol });
-
-  test("finds three distinct symbols", () => {
-    const hand = [card("a", "globo"), card("b", "canon"), card("c", "barco")];
-    expect(findTradeableSet(hand)).toEqual(["a", "b", "c"]);
-  });
-
-  test("finds three of the same symbol among a larger hand", () => {
-    const hand = [card("a", "globo"), card("b", "canon"), card("c", "globo"), card("d", "globo")];
-    expect(findTradeableSet(hand)).toEqual(["a", "c", "d"]);
-  });
-
-  test("returns null when no valid set exists", () => {
-    const hand = [card("a", "globo"), card("b", "globo"), card("c", "canon")];
-    expect(findTradeableSet(hand)).toBeNull();
   });
 });
 
