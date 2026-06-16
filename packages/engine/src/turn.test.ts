@@ -2,7 +2,8 @@ import { describe, expect, test } from "vitest";
 import { applyAction } from "./turn.js";
 import { createGame } from "./setup.js";
 import { fixtureMap } from "./map/fixture.js";
-import type { GameState, Objective } from "./types.js";
+import { ownedTerritoryIds } from "./reinforce.js";
+import type { GameState, Objective, Card } from "./types.js";
 
 const objectives: Objective[] = [
   { id: "o-a", kind: "conquer-count", description: "own 9", targetCount: 9 },
@@ -200,5 +201,30 @@ describe("forced trade (max 5 cards)", () => {
     const s = reinforceWithCards(hand);
     const next = applyAction(s, { type: "endReinforce" });
     expect(next.phase).toBe("attack");
+  });
+
+  test("forced trade: endReinforce throws at 5 cards with a set, succeeds after trading", () => {
+    const card = (id: string, symbol: Card["symbol"]): Card => ({ id, territoryId: id, symbol });
+    const base = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+    const cards = [card("a", "globo"), card("b", "canon"), card("c", "barco"), card("d", "globo"), card("e", "globo")];
+    const state = {
+      ...base,
+      phase: "reinforce" as const,
+      pendingReinforcements: 0,
+      players: base.players.map((p, i) => (i === base.currentPlayerIndex ? { ...p, cards } : p)),
+    };
+
+    // 5 cards + a set + 0 pending → must trade before ending reinforce.
+    expect(() => applyAction(state, { type: "endReinforce" })).toThrow(/trade a card set/i);
+
+    // Trade the first valid set → reinforcements granted.
+    const traded = applyAction(state, { type: "tradeCards", cardIds: ["a", "b", "c"] });
+    expect(traded.pendingReinforcements).toBeGreaterThan(0);
+
+    // Place them, then endReinforce now succeeds (hand back under 5).
+    const owned = ownedTerritoryIds(traded, "you")[0]!;
+    const placed = applyAction(traded, { type: "place", territoryId: owned, armies: traded.pendingReinforcements });
+    const ended = applyAction(placed, { type: "endReinforce" });
+    expect(ended.phase).toBe("attack");
   });
 });
