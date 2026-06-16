@@ -10,6 +10,7 @@ import { startRanked, finalizeRanked, type SubmitResult } from "@/lib/ranked/cli
 import { buildSubmitMessage } from "@/lib/ranked/submitMessage.js";
 import { CONFIGURED_CHAIN_ID } from "@/lib/contracts/addresses.js";
 import { GameView } from "@/components/game/GameView.js";
+import { track } from "@/lib/analytics/events.js";
 
 type Status = "idle" | "starting" | "playing" | "submitting" | "needsSig" | "done" | "error";
 
@@ -25,6 +26,7 @@ export function RankedScreen() {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const startedRef = useRef(false);
   const submittedRef = useRef(false);
+  const signRejectedRef = useRef(false);
 
   const joined = p.view.cta === "joinedWaiting"; // joined + tournament OPEN/LOCKED/ENDED
   const playable = joined && (p.view.phase === "OPEN" || p.view.phase === "LOCKED");
@@ -39,8 +41,12 @@ export function RankedScreen() {
       .then((start) => {
         store.startRankedGame(start);
         setStatus("playing");
+        track("ranked_started");
       })
-      .catch(() => setStatus("error"));
+      .catch(() => {
+        setStatus("error");
+        track("ranked_start_failed");
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, pool, playable]);
 
@@ -57,12 +63,23 @@ export function RankedScreen() {
       signature = await signMessageAsync({ message });
     } catch {
       setStatus("needsSig");
+      if (!signRejectedRef.current) {
+        signRejectedRef.current = true;
+        track("sign_rejected");
+      }
       return;
     }
     try {
       const r = await finalizeRanked(ranked.gameId, signature);
       setResult(r);
       setStatus("done");
+      track("score_finalized", {
+        won: r.won,
+        score: r.score,
+        continents: r.breakdown.continents,
+        territories: r.breakdown.territories,
+        turns_used: r.breakdown.turnsUsed,
+      });
     } catch {
       setStatus("error");
     }
@@ -72,6 +89,7 @@ export function RankedScreen() {
   useEffect(() => {
     if (submittedRef.current || status !== "playing" || !state || !ranked || state.winnerId === null) return;
     submittedRef.current = true;
+    track("ranked_finished", { won: state.winnerId === "you" });
     void signAndFinalize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, state?.winnerId, ranked]);

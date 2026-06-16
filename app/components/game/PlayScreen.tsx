@@ -6,6 +6,7 @@ import { useGame } from "@/lib/game/store.js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher.js";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { GameView } from "@/components/game/GameView.js";
+import { track } from "@/lib/analytics/events.js";
 
 /** The crosshair "X" — used as the final letter of the TACTIX wordmark. */
 function CrosshairX({ className }: { className?: string }) {
@@ -31,7 +32,10 @@ export function PlayScreen() {
   const { state } = store;
 
   useEffect(() => {
-    if (!state) store.newGame();
+    if (!state) {
+      store.newGame();
+      track("practice_started");
+    }
     // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
