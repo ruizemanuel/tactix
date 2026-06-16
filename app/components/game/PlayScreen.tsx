@@ -106,7 +106,7 @@ export function PlayScreen() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => store.newGame()}
+            onClick={() => { store.newGame(); track("practice_started"); }}
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "9.5px",
