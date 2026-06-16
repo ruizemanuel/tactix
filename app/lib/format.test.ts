@@ -19,4 +19,8 @@ describe("formatUsd", () => {
     expect(formatUsd(1_234_567n, 2)).toBe("1.23");
     expect(formatUsd(1_000_000n, 0)).toBe("1");
   });
+  test("maxDecimals beyond the 6 stored decimals shows all available, no padding", () => {
+    expect(formatUsd(1_234_567n, 8)).toBe("1.234567"); // only 6 real decimals exist
+    expect(formatUsd(1_200_000n, 8)).toBe("1.2"); // trailing zeros still trimmed
+  });
 });

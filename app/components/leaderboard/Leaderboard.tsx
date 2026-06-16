@@ -13,7 +13,8 @@ export function Leaderboard() {
     refetchOnWindowFocus: true,
     queryFn: async (): Promise<{ rows: LeaderboardRow[] }> => {
       const r = await fetch(`/api/leaderboard?pool=${pool}`);
-      return r.ok ? r.json() : { rows: [] };
+      if (!r.ok) throw new Error(`leaderboard ${r.status}`);
+      return r.json();
     },
   });
 
