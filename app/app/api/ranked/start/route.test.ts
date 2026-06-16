@@ -70,4 +70,13 @@ describe("POST /api/ranked/start", () => {
     expect(stored.sessionTokenHash).toMatch(/^[0-9a-f]{64}$/);
     expect(stored.sessionTokenHash).not.toBe(json.sessionToken);
   });
+
+  it("persists the on-chain endTime on the new game row", async () => {
+    chainReads({ hasJoined: true, emergency: false, endTimeAhead: true });
+    insertOpenGame.mockResolvedValue("game-xyz");
+    await POST(req({ pool: POOL, player: PLAYER }));
+    const stored = insertOpenGame.mock.calls[0]![0] as { endTime: number };
+    expect(typeof stored.endTime).toBe("number");
+    expect(stored.endTime).toBeGreaterThan(Math.floor(Date.now() / 1000));
+  });
 });

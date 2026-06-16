@@ -48,6 +48,6 @@ export async function POST(req: NextRequest) {
   const initial = createGame(worldMap, [HUMAN_ID, AI_ID], objectives, seed);
   const view = redactState(initial, HUMAN_ID);
 
-  const gameId = await insertOpenGame({ poolAddress: pool, player, seed, commitHash, sessionTokenHash });
+  const gameId = await insertOpenGame({ poolAddress: pool, player, seed, commitHash, sessionTokenHash, endTime: Number(endTime) });
   return NextResponse.json({ gameId, sessionToken, version: 0, view });
 }

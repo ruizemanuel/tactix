@@ -22,6 +22,7 @@ export const rankedGames = pgTable(
     player: text("player").notNull(), // lowercased
     seed: bigint("seed", { mode: "number" }).notNull(), // [0, 2^31)
     commitHash: text("commit_hash").notNull(),
+    endTime: bigint("end_time", { mode: "number" }), // pool endTime (immutable), unix seconds; nullable for any pre-migration row
     status: text("status").notNull().default("open"), // 'open' | 'scored'
     version: integer("version").notNull().default(0),
     sessionTokenHash: text("session_token_hash"),

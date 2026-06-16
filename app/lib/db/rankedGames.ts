@@ -10,6 +10,7 @@ export async function insertOpenGame(v: {
   seed: number;
   commitHash: string;
   sessionTokenHash: string;
+  endTime: number;
 }): Promise<string> {
   const db = getDb();
   const [row] = await db
@@ -20,6 +21,7 @@ export async function insertOpenGame(v: {
       seed: v.seed,
       commitHash: v.commitHash,
       sessionTokenHash: v.sessionTokenHash,
+      endTime: v.endTime,
       actions: [],
       status: "open",
     })
