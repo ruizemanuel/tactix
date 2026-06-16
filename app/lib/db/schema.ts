@@ -27,6 +27,7 @@ export const rankedGames = pgTable(
     version: integer("version").notNull().default(0),
     sessionTokenHash: text("session_token_hash"),
     actions: jsonb("actions").$type<Action[]>(),
+    lastActionAt: timestamp("last_action_at", { withTimezone: true }), // nullable; throttles /action
     score: integer("score"),
     won: boolean("won"),
     continents: integer("continents"),

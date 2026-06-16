@@ -124,4 +124,20 @@ describe("POST /api/ranked/action", () => {
     expect(res.status).toBe(200);
     expect(appendAction).toHaveBeenCalled();
   });
+
+  it("429 when actions come too fast (last_action_at within the min interval)", async () => {
+    getOpenGame.mockResolvedValue(openGame({ lastActionAt: new Date() }));
+    const res = await POST(req({ gameId: "g", sessionToken: TOKEN, version: 0, action: place }));
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: "too fast, slow down" });
+    expect(appendAction).not.toHaveBeenCalled();
+  });
+
+  it("200 proceeds when the last action is old enough", async () => {
+    getOpenGame.mockResolvedValue(openGame({ lastActionAt: new Date(Date.now() - 10_000) }));
+    appendAction.mockResolvedValue(1);
+    const res = await POST(req({ gameId: "g", sessionToken: TOKEN, version: 0, action: place }));
+    expect(res.status).toBe(200);
+    expect(appendAction).toHaveBeenCalled();
+  });
 });

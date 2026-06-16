@@ -67,7 +67,7 @@ export async function appendAction(
   const db = getDb();
   const rows = await db
     .update(rankedGames)
-    .set({ actions: newLog, version: expectedVersion + 1 })
+    .set({ actions: newLog, version: expectedVersion + 1, lastActionAt: new Date() })
     .where(
       and(
         eq(rankedGames.id, id),

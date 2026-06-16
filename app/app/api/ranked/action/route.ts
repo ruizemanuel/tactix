@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { replayWithEvents, redactState, type Action, type RedactedGameState } from "@teg/engine";
 import { getOpenGame, appendAction } from "@/lib/db/rankedGames.js";
+import { isActionThrottled } from "@/lib/ranked/rateLimit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -83,6 +84,10 @@ export async function POST(req: NextRequest) {
   // version-mismatch read/retry branch below). Zero RPC: server clock vs the stored value.
   if (game.endTime != null && Math.floor(Date.now() / 1000) >= game.endTime) {
     return NextResponse.json({ error: "tournament ended" }, { status: 409 });
+  }
+
+  if (isActionThrottled(game.lastActionAt, Date.now())) {
+    return NextResponse.json({ error: "too fast, slow down" }, { status: 429 });
   }
 
   const storedLog = (game.actions ?? []) as Action[];
