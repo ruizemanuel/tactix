@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { deriveTournamentView, type TournamentInput } from "./state.js";
+import { describe, it, test, expect } from "vitest";
+import { deriveTournamentView, applyOptimistic, reconcileOptimistic, type TournamentInput } from "./state.js";
 
 const base: TournamentInput = {
   connected: true,
@@ -127,5 +127,46 @@ describe("deriveTournamentView — time boundaries (off-by-one guards)", () => {
   });
   it("usdtBalance exactly == deposit → not needUsdt (balance is sufficient)", () => {
     expect(deriveTournamentView({ ...base, nowSec: 1500, allowance: 0n, usdtBalance: 1_000_000n }).cta).toBe("approve");
+  });
+});
+
+describe("applyOptimistic", () => {
+  const D = 1_000_000n;
+  test("no optimistic → reads pass through", () => {
+    expect(applyOptimistic({ allowance: 0n, hasJoined: false }, D, {})).toEqual({ allowance: 0n, hasJoined: false });
+  });
+  test("approved lifts a stale (low) allowance to the deposit", () => {
+    expect(applyOptimistic({ allowance: 0n, hasJoined: false }, D, { approved: true })).toEqual({ allowance: D, hasJoined: false });
+  });
+  test("approved does not lower an already-sufficient allowance", () => {
+    expect(applyOptimistic({ allowance: 5_000_000n, hasJoined: false }, D, { approved: true })).toEqual({ allowance: 5_000_000n, hasJoined: false });
+  });
+  test("joined overrides a stale hasJoined=false", () => {
+    expect(applyOptimistic({ allowance: 0n, hasJoined: false }, D, { joined: true })).toEqual({ allowance: 0n, hasJoined: true });
+  });
+  test("joined=false overrides a stale hasJoined=true (post-withdraw)", () => {
+    expect(applyOptimistic({ allowance: 0n, hasJoined: true }, D, { joined: false })).toEqual({ allowance: 0n, hasJoined: false });
+  });
+});
+
+describe("reconcileOptimistic", () => {
+  const D = 1_000_000n;
+  test("clears approved once the allowance read reaches the deposit", () => {
+    expect(reconcileOptimistic({ approved: true }, { allowance: D, hasJoined: false }, D)).toEqual({});
+  });
+  test("keeps approved (same ref) while the allowance read is still stale", () => {
+    const o = { approved: true };
+    expect(reconcileOptimistic(o, { allowance: 0n, hasJoined: false }, D)).toBe(o);
+  });
+  test("clears joined once the hasJoined read agrees", () => {
+    expect(reconcileOptimistic({ joined: true }, { allowance: 0n, hasJoined: true }, D)).toEqual({});
+  });
+  test("keeps joined (same ref) while the read still disagrees", () => {
+    const o = { joined: true };
+    expect(reconcileOptimistic(o, { allowance: 0n, hasJoined: false }, D)).toBe(o);
+  });
+  test("returns the same object when nothing changes (no re-render)", () => {
+    const o = {};
+    expect(reconcileOptimistic(o, { allowance: 0n, hasJoined: false }, D)).toBe(o);
   });
 });

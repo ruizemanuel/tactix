@@ -100,3 +100,44 @@ export function deriveTournamentView(i: TournamentInput): TournamentView {
   const phase = derivePhase(i);
   return { phase, cta: deriveCta(i, phase) };
 }
+
+export interface OptimisticJoinState {
+  approved?: boolean;
+  joined?: boolean;
+}
+
+/** Overlay a just-confirmed approve/join (optimistic) onto the laggy on-chain reads,
+ *  so the lobby CTA advances immediately even when a load-balanced RPC serves a stale
+ *  read right after the tx. `approved` lifts a low allowance up to the deposit;
+ *  `joined` overrides hasJoined (true after join, false after withdraw). */
+export function applyOptimistic(
+  read: { allowance: bigint; hasJoined: boolean },
+  deposit: bigint,
+  o: OptimisticJoinState,
+): { allowance: bigint; hasJoined: boolean } {
+  return {
+    allowance: o.approved && read.allowance < deposit ? deposit : read.allowance,
+    hasJoined: o.joined ?? read.hasJoined,
+  };
+}
+
+/** Clear an optimistic flag once the on-chain read has caught up to it (so the read
+ *  becomes authoritative again). Returns the SAME object when nothing changes, so the
+ *  caller can skip a state update / re-render. */
+export function reconcileOptimistic(
+  o: OptimisticJoinState,
+  read: { allowance: bigint; hasJoined: boolean },
+  deposit: bigint,
+): OptimisticJoinState {
+  let changed = false;
+  const next: OptimisticJoinState = { ...o };
+  if (o.approved !== undefined && (read.allowance >= deposit) === o.approved) {
+    delete next.approved;
+    changed = true;
+  }
+  if (o.joined !== undefined && read.hasJoined === o.joined) {
+    delete next.joined;
+    changed = true;
+  }
+  return changed ? next : o;
+}
