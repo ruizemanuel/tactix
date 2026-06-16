@@ -112,6 +112,23 @@ test("a failed ranked action sets rankedError + lastFailedAction, and retryRanke
   expect(client.sendAction).toHaveBeenLastCalledWith("g1", "tok", 0, { type: "endReinforce" });
 });
 
+test("retryRanked clears rankedError + lastFailedAction on a successful re-send", async () => {
+  const baseView = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "reinforce", turnNumber: 1, pendingReinforcements: 3, conquestsThisTurn: 0, deckCount: 32, lastCombat: null, winnerId: null };
+  useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: baseView as never });
+  const send = client.sendAction as ReturnType<typeof vi.fn>;
+
+  send.mockRejectedValueOnce(new Error("network"));
+  await useGame.getState().endReinforce();
+  expect(useGame.getState().rankedError).toBe(true);
+  expect(useGame.getState().lastFailedAction).toEqual({ type: "endReinforce" });
+
+  send.mockResolvedValueOnce({ version: 1, view: baseView, frames: [] });
+  await useGame.getState().retryRanked();
+  expect(useGame.getState().rankedError).toBe(false);
+  expect(useGame.getState().lastFailedAction).toBeNull();
+  expect(useGame.getState().ranked!.version).toBe(1);
+});
+
 test("occupy dispatches an occupy action (practice applies locally)", () => {
   useGame.getState().newGame(7);
   const st = useGame.getState().state!;
