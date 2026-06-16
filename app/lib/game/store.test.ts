@@ -129,6 +129,16 @@ test("retryRanked clears rankedError + lastFailedAction on a successful re-send"
   expect(useGame.getState().ranked!.version).toBe(1);
 });
 
+test("a ranked occupy posts the occupy action to the server", async () => {
+  const baseView = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "attack", turnNumber: 1, pendingReinforcements: 0, conquestsThisTurn: 0, deckCount: 32, lastCombat: null, winnerId: null };
+  useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: baseView as never });
+  (client.sendAction as ReturnType<typeof vi.fn>).mockResolvedValue({ version: 1, view: baseView, frames: [] });
+
+  await useGame.getState().occupy(2);
+  expect(client.sendAction).toHaveBeenCalledWith("g1", "tok", 0, { type: "occupy", armies: 2 });
+  expect(useGame.getState().ranked!.version).toBe(1);
+});
+
 test("occupy dispatches an occupy action (practice applies locally)", () => {
   useGame.getState().newGame(7);
   const st = useGame.getState().state!;
