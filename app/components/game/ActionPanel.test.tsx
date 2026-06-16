@@ -50,3 +50,19 @@ test("offers a trade-cards button when a tradeable set is available in reinforce
   fireEvent.click(screen.getByRole("button", { name: /Trade cards/ }));
   expect(onTradeCards).toHaveBeenCalledWith(["c1", "c2", "c3"]);
 });
+
+test("occupy prompt shows 'Move N' buttons and dispatches the chosen count", () => {
+  const base = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+  const state = { ...base, phase: "attack" as const, pendingOccupation: { from: "x", to: "y", max: 3 } };
+  const onOccupy = vi.fn();
+  renderPanel({ state, onEndReinforce: () => {}, onEndAttack: () => {}, onEndTurn: () => {}, onTradeCards: () => {}, onOccupy, tradeSet: null });
+  fireEvent.click(screen.getByRole("button", { name: /Move 2/ }));
+  expect(onOccupy).toHaveBeenCalledWith(2);
+});
+
+test("the disabled prop disables the action buttons", () => {
+  const base = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+  const state = { ...base, phase: "attack" as const };
+  renderPanel({ state, disabled: true, onEndReinforce: () => {}, onEndAttack: () => {}, onEndTurn: () => {}, onTradeCards: () => {}, onOccupy: () => {}, tradeSet: null });
+  expect(screen.getByRole("button", { name: /Move to fortify/ })).toBeDisabled();
+});

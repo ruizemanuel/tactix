@@ -14,6 +14,7 @@ export interface ActionPanelProps {
   onEndAttack: () => void;
   onEndTurn: () => void;
   onOccupy: (armies: number) => void;
+  disabled?: boolean;
 }
 
 // ── Button variants ────────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ export function ActionPanel({
   onEndAttack,
   onEndTurn,
   onOccupy,
+  disabled = false,
 }: ActionPanelProps) {
   const { t } = useI18n();
 
@@ -90,8 +92,8 @@ export function ActionPanel({
         </p>
         <div className="flex gap-[9px]">
           {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
-            <Btn key={n} variant="primary" onClick={() => onOccupy(n)}>
-              {n}
+            <Btn key={n} variant="primary" disabled={disabled} onClick={() => onOccupy(n)}>
+              {t("action.occupy", { n })}
             </Btn>
           ))}
         </div>
@@ -112,14 +114,14 @@ export function ActionPanel({
         </p>
         <div className="flex gap-[9px]">
           {tradeSet && (
-            <Btn variant="signal" onClick={() => onTradeCards(tradeSet)} className="flex-none px-[14px]">
+            <Btn variant="signal" disabled={disabled} onClick={() => onTradeCards(tradeSet)} className="flex-none px-[14px]">
               {t("action.tradeCards", { n: nextTradeBonus })}
             </Btn>
           )}
           <Btn
             variant="primary"
             onClick={onEndReinforce}
-            disabled={state.pendingReinforcements > 0}
+            disabled={disabled || state.pendingReinforcements > 0}
           >
             {t("action.endReinforce")}
           </Btn>
@@ -138,7 +140,7 @@ export function ActionPanel({
           {t("prompt.attackFrom")}
         </p>
         <div className="flex gap-[9px]">
-          <Btn variant="primary" onClick={onEndAttack} className="flex-none px-[14px]">
+          <Btn variant="primary" disabled={disabled} onClick={onEndAttack} className="flex-none px-[14px]">
             {t("action.endAttack")}
           </Btn>
         </div>
@@ -156,7 +158,7 @@ export function ActionPanel({
         {t("prompt.fortifyFrom")}
       </p>
       <div className="flex gap-[9px]">
-        <Btn variant="ghost" onClick={onEndTurn}>
+        <Btn variant="ghost" disabled={disabled} onClick={onEndTurn}>
           {t("action.endTurn")}
         </Btn>
       </div>
