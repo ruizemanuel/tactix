@@ -5,7 +5,8 @@ import { assignObjectives, createGame, redactState, worldMap } from "@teg/engine
 import { CONFIGURED_CHAIN_ID } from "@/lib/contracts/addresses.js";
 import { tegPoolAbi } from "@/lib/contracts/tegPool.js";
 import { getServerPublicClient } from "@/lib/web3/server.js";
-import { insertOpenGame } from "@/lib/db/rankedGames.js";
+import { insertOpenGame, countRecentGames } from "@/lib/db/rankedGames.js";
+import { START_LIMIT, START_WINDOW_MS } from "@/lib/ranked/rateLimit.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,15 @@ export async function POST(req: NextRequest) {
   const { pool, player } = body;
   if (!pool || !isAddress(pool) || !player || !isAddress(player)) {
     return NextResponse.json({ error: "pool and player must be addresses" }, { status: 400 });
+  }
+
+  // Per-participant rate-limit (Neon count) BEFORE the on-chain reads, so a rate-limited
+  // caller doesn't trigger the 3 RPC reads. Bounds open-row bloat + RPC hammering.
+  // Check-then-insert TOCTOU is tolerated: this is a coarse abuse bound (money is gated
+  // on-chain by hasJoined + the oracle), so a tiny concurrent overshoot is harmless.
+  const recent = await countRecentGames(pool, player, new Date(Date.now() - START_WINDOW_MS));
+  if (recent >= START_LIMIT) {
+    return NextResponse.json({ error: "too many games, slow down" }, { status: 429 });
   }
 
   const client = getServerPublicClient(CONFIGURED_CHAIN_ID);

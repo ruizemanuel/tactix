@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { getDb } from "./index.js";
 import { rankedGames } from "./schema.js";
 import type { Action, ScoreBreakdown } from "@teg/engine";
@@ -36,6 +36,22 @@ export async function getOpenGame(id: string) {
     .from(rankedGames)
     .where(and(eq(rankedGames.id, id), eq(rankedGames.status, "open")));
   return row ?? null;
+}
+
+/** Count games created by (poolAddress, player) since `since` — backs the /start rate-limit. */
+export async function countRecentGames(poolAddress: string, player: string, since: Date): Promise<number> {
+  const db = getDb();
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(rankedGames)
+    .where(
+      and(
+        eq(rankedGames.poolAddress, poolAddress.toLowerCase()),
+        eq(rankedGames.player, player.toLowerCase()),
+        gt(rankedGames.createdAt, since),
+      ),
+    );
+  return row?.n ?? 0;
 }
 
 /**

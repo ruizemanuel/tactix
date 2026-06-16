@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const insertOpenGame = vi.fn();
 const readContract = vi.fn();
+const countRecentGames = vi.fn();
 
-vi.mock("@/lib/db/rankedGames.js", () => ({ insertOpenGame: (...a: unknown[]) => insertOpenGame(...a) }));
+vi.mock("@/lib/db/rankedGames.js", () => ({
+  insertOpenGame: (...a: unknown[]) => insertOpenGame(...a),
+  countRecentGames: (...a: unknown[]) => countRecentGames(...a),
+}));
 vi.mock("@/lib/web3/server.js", () => ({
   getServerPublicClient: () => ({ readContract: (...a: unknown[]) => readContract(...a) }),
 }));
@@ -34,9 +38,29 @@ function chainReads({ hasJoined, emergency, endTimeAhead }: { hasJoined: boolean
 beforeEach(() => {
   insertOpenGame.mockReset();
   readContract.mockReset();
+  countRecentGames.mockReset();
+  countRecentGames.mockResolvedValue(0);
 });
 
 describe("POST /api/ranked/start", () => {
+  it("429 when the player has started too many games recently (before any on-chain read)", async () => {
+    countRecentGames.mockResolvedValue(10);
+    const res = await POST(req({ pool: POOL, player: PLAYER }));
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: "too many games, slow down" });
+    expect(insertOpenGame).not.toHaveBeenCalled();
+    expect(readContract).not.toHaveBeenCalled();
+  });
+
+  it("200 proceeds when just under the start limit (9 recent games)", async () => {
+    countRecentGames.mockResolvedValue(9);
+    chainReads({ hasJoined: true, emergency: false, endTimeAhead: true });
+    insertOpenGame.mockResolvedValue("game-9");
+    const res = await POST(req({ pool: POOL, player: PLAYER }));
+    expect(res.status).toBe(200);
+    expect(insertOpenGame).toHaveBeenCalledOnce();
+  });
+
   it("400 when pool/player are not addresses", async () => {
     const res = await POST(req({ pool: "nope", player: "nope" }));
     expect(res.status).toBe(400);
