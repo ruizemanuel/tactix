@@ -96,6 +96,22 @@ test("practice mode still applies locally with no network call", () => {
   expect(client.sendAction).not.toHaveBeenCalled();
 });
 
+test("a failed ranked action sets rankedError + lastFailedAction, and retryRanked re-sends it", async () => {
+  const baseView = { players: [{ id: "you", alive: true, cardTradeIns: 0, cardCount: 0, cards: [], objectiveId: "obj-asia" }, { id: "ai", alive: true, cardTradeIns: 0, cardCount: 0 }], map: useGame.getState().state!.map, territories: {}, objectives: {}, currentPlayerIndex: 0, phase: "reinforce", turnNumber: 1, pendingReinforcements: 3, conquestsThisTurn: 0, deckCount: 32, lastCombat: null, winnerId: null };
+  useGame.getState().startRankedGame({ gameId: "g1", sessionToken: "tok", version: 0, view: baseView as never });
+  (client.sendAction as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("network"));
+
+  await useGame.getState().endReinforce();
+  expect(useGame.getState().rankedError).toBe(true);
+  expect(useGame.getState().lastFailedAction).toEqual({ type: "endReinforce" });
+  expect(client.sendAction).toHaveBeenCalledTimes(1);
+  expect(useGame.getState().aiThinking).toBe(false);
+
+  await useGame.getState().retryRanked();
+  expect(client.sendAction).toHaveBeenCalledTimes(2);
+  expect(client.sendAction).toHaveBeenLastCalledWith("g1", "tok", 0, { type: "endReinforce" });
+});
+
 test("occupy dispatches an occupy action (practice applies locally)", () => {
   useGame.getState().newGame(7);
   const st = useGame.getState().state!;

@@ -29,6 +29,7 @@ interface GameStore {
   aiThinking: boolean;
   ranked: RankedSession | null;
   rankedError: boolean;
+  lastFailedAction: Action | null;
   newGame: (seed?: number) => void;
   startRankedGame: (start: StartResult) => void;
   select: (territoryId: string | null) => void;
@@ -39,6 +40,7 @@ interface GameStore {
   endAttack: () => Promise<void>;
   fortify: (from: string, to: string, armies: number) => Promise<void>;
   occupy: (armies: number) => Promise<void>;
+  retryRanked: () => Promise<void>;
   endTurn: (stepDelayMs?: number) => Promise<void>;
 }
 
@@ -81,9 +83,10 @@ export const useGame = create<GameStore>((set, get) => {
         ranked: { ...get().ranked!, version: r.version },
         aiThinking: false,
         rankedError: false,
+        lastFailedAction: null,
       });
     } catch {
-      set({ aiThinking: false, rankedError: true });
+      set({ aiThinking: false, rankedError: true, lastFailedAction: action });
     }
   }
 
@@ -100,6 +103,7 @@ export const useGame = create<GameStore>((set, get) => {
     aiThinking: false,
     ranked: null,
     rankedError: false,
+    lastFailedAction: null,
 
     newGame: (seed = Math.floor(Math.random() * 2 ** 31)) => {
       const objectives = assignObjectives([YOU, AI], seed);
@@ -109,6 +113,7 @@ export const useGame = create<GameStore>((set, get) => {
         aiThinking: false,
         ranked: null,
         rankedError: false,
+        lastFailedAction: null,
       });
     },
 
@@ -119,6 +124,7 @@ export const useGame = create<GameStore>((set, get) => {
         aiThinking: false,
         ranked: { gameId: start.gameId, sessionToken: start.sessionToken, version: start.version },
         rankedError: false,
+        lastFailedAction: null,
       });
     },
 
@@ -130,6 +136,11 @@ export const useGame = create<GameStore>((set, get) => {
     endAttack: () => dispatch({ type: "endAttack" }),
     fortify: (from, to, armies) => dispatch({ type: "fortify", from, to, armies }),
     occupy: (armies) => dispatch({ type: "occupy", armies }),
+
+    retryRanked: async () => {
+      const action = get().lastFailedAction;
+      if (action) await sendRanked(action);
+    },
 
     endTurn: async (stepDelayMs = 450) => {
       if (get().ranked) {
