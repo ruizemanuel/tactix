@@ -3,6 +3,7 @@ import { nextInt } from "./rng.js";
 import { ownedTerritoryIds } from "./reinforce.js";
 import type { Action, GameState, PlayerId } from "./types.js";
 import { territoryById } from "./map/lookup.js";
+import { findTradeableSet } from "./cards.js";
 
 export interface Player {
   id: PlayerId;
@@ -50,7 +51,7 @@ export class RandomPlayer implements Player {
 
   decide(state: GameState): Action {
     if (state.pendingOccupation) {
-      return { type: "occupy", armies: 1 };
+      return { type: "occupy", armies: state.pendingOccupation.max };
     }
     const me = this.id;
     if (state.phase === "reinforce") {
@@ -59,6 +60,11 @@ export class RandomPlayer implements Player {
         const r = nextInt(this.rng, owned.length);
         this.rng = r.state;
         return { type: "place", territoryId: owned[r.value]!, armies: state.pendingReinforcements };
+      }
+      const cur = state.players[state.currentPlayerIndex]!;
+      if (cur.cards.length >= 5) {
+        const set = findTradeableSet(cur.cards);
+        if (set) return { type: "tradeCards", cardIds: set };
       }
       return { type: "endReinforce" };
     }

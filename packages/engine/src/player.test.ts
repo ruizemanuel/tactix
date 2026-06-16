@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { RandomPlayer, runGame } from "./player.js";
 import { createGame } from "./setup.js";
 import { fixtureMap } from "./map/fixture.js";
-import type { Objective } from "./types.js";
+import type { Card, Objective } from "./types.js";
 
 const objectives: Objective[] = [
   { id: "o-a", kind: "conquer-count", description: "own 6", targetCount: 6 },
@@ -44,4 +44,23 @@ describe("runGame with RandomPlayer", () => {
     const players = [new RandomPlayer("A")]; // B missing
     expect(() => runGame(createGame(fixtureMap, ["A", "B"], objectives, 4), players, 5000)).toThrow(/No Player implementation/);
   });
+});
+
+test("RandomPlayer occupies the maximum during a pending occupation", () => {
+  const base = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+  const state = { ...base, pendingOccupation: { from: "x", to: "y", max: 3 } };
+  expect(new RandomPlayer("you").decide(state)).toEqual({ type: "occupy", armies: 3 });
+});
+
+test("RandomPlayer trades a forced set instead of throwing at the 5-card wall", () => {
+  const card = (id: string, symbol: Card["symbol"]): Card => ({ id, territoryId: id, symbol });
+  const base = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+  const cards = [card("a", "globo"), card("b", "canon"), card("c", "barco"), card("d", "globo"), card("e", "globo")];
+  const state = {
+    ...base,
+    phase: "reinforce" as const,
+    pendingReinforcements: 0,
+    players: base.players.map((p, i) => (i === base.currentPlayerIndex ? { ...p, cards } : p)),
+  };
+  expect(new RandomPlayer("you").decide(state)).toEqual({ type: "tradeCards", cardIds: ["a", "b", "c"] });
 });
