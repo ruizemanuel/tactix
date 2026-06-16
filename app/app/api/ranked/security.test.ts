@@ -7,11 +7,13 @@ const insertOpenGame = vi.fn();
 const getOpenGame = vi.fn();
 const appendAction = vi.fn();
 const readContract = vi.fn();
+const countRecentGames = vi.fn();
 
 vi.mock("@/lib/db/rankedGames.js", () => ({
   insertOpenGame: (...a: unknown[]) => insertOpenGame(...a),
   getOpenGame: (...a: unknown[]) => getOpenGame(...a),
   appendAction: (...a: unknown[]) => appendAction(...a),
+  countRecentGames: (...a: unknown[]) => countRecentGames(...a),
 }));
 vi.mock("@/lib/web3/server.js", () => ({
   getServerPublicClient: () => ({ readContract: (...a: unknown[]) => readContract(...a) }),
@@ -81,6 +83,8 @@ beforeEach(() => {
   getOpenGame.mockReset();
   appendAction.mockReset();
   readContract.mockReset();
+  countRecentGames.mockReset();
+  countRecentGames.mockResolvedValue(0);
   readContract.mockImplementation(({ functionName }: { functionName: string }) => {
     if (functionName === "hasJoined") return Promise.resolve(true);
     if (functionName === "emergencyActive") return Promise.resolve(false);
