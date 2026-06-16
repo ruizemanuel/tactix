@@ -38,6 +38,7 @@ interface GameStore {
   attack: (from: string, to: string) => Promise<void>;
   endAttack: () => Promise<void>;
   fortify: (from: string, to: string, armies: number) => Promise<void>;
+  occupy: (armies: number) => Promise<void>;
   endTurn: (stepDelayMs?: number) => Promise<void>;
 }
 
@@ -128,6 +129,7 @@ export const useGame = create<GameStore>((set, get) => {
     attack: (from, to) => dispatch({ type: "attack", from, to }),
     endAttack: () => dispatch({ type: "endAttack" }),
     fortify: (from, to, armies) => dispatch({ type: "fortify", from, to, armies }),
+    occupy: (armies) => dispatch({ type: "occupy", armies }),
 
     endTurn: async (stepDelayMs = 450) => {
       if (get().ranked) {

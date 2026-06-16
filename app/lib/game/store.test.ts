@@ -95,3 +95,27 @@ test("practice mode still applies locally with no network call", () => {
   expect(useGame.getState().state!.territories[terr]!.armies).toBeGreaterThan(1);
   expect(client.sendAction).not.toHaveBeenCalled();
 });
+
+test("occupy dispatches an occupy action (practice applies locally)", () => {
+  useGame.getState().newGame(7);
+  const st = useGame.getState().state!;
+  const owned = ownedTerritoryIds(st, "you");
+  const from = owned[0]!;
+  const to = owned[1]!;
+  useGame.setState({
+    state: {
+      ...st,
+      phase: "attack",
+      territories: {
+        ...st.territories,
+        [from]: { ...st.territories[from]!, armies: 5 },
+        [to]: { ownerId: "you", armies: 0 },
+      },
+      pendingOccupation: { from, to, max: 3 },
+    },
+  });
+  void useGame.getState().occupy(2);
+  const after = useGame.getState().state!;
+  expect(after.pendingOccupation).toBeNull();
+  expect(after.territories[to]!.armies).toBe(2);
+});

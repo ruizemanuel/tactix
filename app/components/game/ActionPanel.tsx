@@ -13,6 +13,7 @@ export interface ActionPanelProps {
   onEndReinforce: () => void;
   onEndAttack: () => void;
   onEndTurn: () => void;
+  onOccupy: (armies: number) => void;
 }
 
 // ── Button variants ────────────────────────────────────────────────────────────
@@ -76,8 +77,27 @@ export function ActionPanel({
   onEndReinforce,
   onEndAttack,
   onEndTurn,
+  onOccupy,
 }: ActionPanelProps) {
   const { t } = useI18n();
+
+  if (state.pendingOccupation) {
+    const max = state.pendingOccupation.max;
+    return (
+      <div className="flex flex-col gap-[10px]">
+        <p className="text-[12.5px] leading-[1.45] text-[var(--color-muted)]" style={{ fontFamily: "var(--font-body)" }}>
+          {t("prompt.occupy")}
+        </p>
+        <div className="flex gap-[9px]">
+          {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+            <Btn key={n} variant="primary" onClick={() => onOccupy(n)}>
+              {n}
+            </Btn>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (state.phase === "reinforce") {
     const youPlayer = state.players.find((p) => p.id === "you");

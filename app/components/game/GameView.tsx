@@ -23,7 +23,8 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
 
   const humanTurn =
     state.players[state.currentPlayerIndex]!.id === "you" && !aiThinking && !state.winnerId;
-  const selectable = humanTurn ? selectableTerritories(state, "you", selected) : [];
+  const occupying = !!state.pendingOccupation;
+  const selectable = humanTurn && !occupying ? selectableTerritories(state, "you", selected) : [];
   const showPanel = interactive && humanTurn;
   const youPlayer = state.players.find((p) => p.id === "you")!;
   const tradeSet = showPanel && state.phase === "reinforce" ? findTradeableSet(youPlayer.cards) : null;
@@ -61,6 +62,7 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
           onEndReinforce={() => store.endReinforce()}
           onEndAttack={() => store.endAttack()}
           onEndTurn={() => void store.endTurn()}
+          onOccupy={(armies) => void store.occupy(armies)}
         />
       )}
     </>
