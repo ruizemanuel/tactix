@@ -78,6 +78,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "bad session" }, { status: 401 });
   }
 
+  // Tournament deadline (hard): endTime is the pool's immutable end, persisted at /start.
+  // Once it passes, no action does anything useful -> 409 (covers the new-append AND the
+  // version-mismatch read/retry branch below). Zero RPC: server clock vs the stored value.
+  if (game.endTime != null && Math.floor(Date.now() / 1000) >= game.endTime) {
+    return NextResponse.json({ error: "tournament ended" }, { status: 409 });
+  }
+
   const storedLog = (game.actions ?? []) as Action[];
 
   // Version mismatch → idempotent retry (client one behind, same last action) or conflict.
