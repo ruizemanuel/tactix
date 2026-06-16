@@ -1,12 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAccount, useReadContract, useWriteContract, usePublicClient, useSwitchChain } from "wagmi";
 import { erc20Abi } from "viem";
 import type { config } from "@/lib/web3/wagmi.js";
 import { tegPoolAbi } from "@/lib/contracts/tegPool.js";
 import { mockUsdtMintAbi } from "@/lib/contracts/erc20.js";
 import { ADDRESSES, CONFIGURED_CHAIN_ID, isConfigured, isTestnet } from "@/lib/contracts/addresses.js";
-import { deriveTournamentView, type TournamentInput } from "@/lib/tournament/state.js";
+import { deriveTournamentView, applyOptimistic, reconcileOptimistic, type TournamentInput, type OptimisticJoinState } from "@/lib/tournament/state.js";
 
 // Wagmi infers chain IDs as a literal union from the registered config.
 // CONFIGURED_CHAIN_ID is typed as `number`; we need to cast it so wagmi's
@@ -26,8 +27,10 @@ export function useTegPool() {
   const poolEnabled = configured && Boolean(pool);
   const userEnabled = poolEnabled && connected;
 
+  const POLL_MS = 6_000;
+
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const read = (functionName: string, args?: readonly unknown[], enabled = poolEnabled) =>
+  const read = (functionName: string, args?: readonly unknown[], enabled = poolEnabled, dynamic = false) =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useReadContract({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,7 +40,7 @@ export function useTegPool() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       functionName: functionName as any,
       args,
-      query: { enabled },
+      query: { enabled, refetchInterval: dynamic && enabled ? POLL_MS : false },
     });
 
   const deposit = read("deposit");
@@ -45,18 +48,18 @@ export function useTegPool() {
   const endTime = read("endTime");
   const label = read("label");
   const platformFeeBps = read("platformFeeBps");
-  const participantsLength = read("participantsLength");
+  const participantsLength = read("participantsLength", undefined, poolEnabled, true);
   const seedAmount = read("seedAmount");
-  const scoresSubmitted = read("scoresSubmitted");
-  const finalized = read("finalized");
-  const winner = read("winner");
-  const prizeAmount = read("prizeAmount");
-  const emergencyActive = read("emergencyActive");
-  const hasJoined = read("hasJoined", address ? [address] : undefined, userEnabled);
-  const prizeClaimed = read("prizeClaimed");
-  const depositWithdrawn = read("depositWithdrawn", address ? [address] : undefined, userEnabled);
-  const emergencyWithdrawn = read("emergencyWithdrawn", address ? [address] : undefined, userEnabled);
-  const paused = read("paused");
+  const scoresSubmitted = read("scoresSubmitted", undefined, poolEnabled, true);
+  const finalized = read("finalized", undefined, poolEnabled, true);
+  const winner = read("winner", undefined, poolEnabled, true);
+  const prizeAmount = read("prizeAmount", undefined, poolEnabled, true);
+  const emergencyActive = read("emergencyActive", undefined, poolEnabled, true);
+  const hasJoined = read("hasJoined", address ? [address] : undefined, userEnabled, true);
+  const prizeClaimed = read("prizeClaimed", undefined, poolEnabled, true);
+  const depositWithdrawn = read("depositWithdrawn", address ? [address] : undefined, userEnabled, true);
+  const emergencyWithdrawn = read("emergencyWithdrawn", address ? [address] : undefined, userEnabled, true);
+  const paused = read("paused", undefined, poolEnabled, true);
   const maxParticipants = read("MAX_PARTICIPANTS");
 
   const allowance = useReadContract({
@@ -65,7 +68,7 @@ export function useTegPool() {
     chainId,
     functionName: "allowance",
     args: address && pool ? [address, pool] : undefined,
-    query: { enabled: userEnabled && Boolean(usdt) },
+    query: { enabled: userEnabled && Boolean(usdt), refetchInterval: userEnabled && Boolean(usdt) ? POLL_MS : false },
   });
   const usdtBalance = useReadContract({
     abi: erc20Abi,
@@ -73,14 +76,31 @@ export function useTegPool() {
     chainId,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
-    query: { enabled: userEnabled && Boolean(usdt) },
+    query: { enabled: userEnabled && Boolean(usdt), refetchInterval: userEnabled && Boolean(usdt) ? POLL_MS : false },
   });
 
   const { writeContractAsync, isPending } = useWriteContract();
   const { switchChainAsync } = useSwitchChain();
   const publicClient = usePublicClient({ chainId });
 
+  const [optimistic, setOptimistic] = useState<OptimisticJoinState>({});
+
+  // Reset the optimistic overlay when the connected account changes, so flags from
+  // one account never leak to another (in-place wallet account switch).
+  useEffect(() => {
+    setOptimistic({});
+  }, [address]);
+
   const depositWei = (deposit.data as bigint | undefined) ?? 0n;
+  const readAllowance = (allowance.data as bigint | undefined) ?? 0n;
+  const readHasJoined = Boolean(hasJoined.data);
+  const effective = applyOptimistic({ allowance: readAllowance, hasJoined: readHasJoined }, depositWei, optimistic);
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    setOptimistic((o) => reconcileOptimistic(o, { allowance: readAllowance, hasJoined: readHasJoined }, depositWei));
+  }, [readAllowance, readHasJoined, depositWei]);
+
   const winnerAddr = winner.data as `0x${string}` | undefined;
   const isWinner = Boolean(address && winnerAddr && winnerAddr.toLowerCase() === address.toLowerCase());
 
@@ -95,9 +115,9 @@ export function useTegPool() {
     lockTime: (lockTime.data as bigint | undefined) ?? 0n,
     endTime: (endTime.data as bigint | undefined) ?? 0n,
     deposit: depositWei,
-    allowance: (allowance.data as bigint | undefined) ?? 0n,
+    allowance: effective.allowance,
     usdtBalance: (usdtBalance.data as bigint | undefined) ?? 0n,
-    hasJoined: Boolean(hasJoined.data),
+    hasJoined: effective.hasJoined,
     paused: Boolean(paused.data),
     poolFull,
     finalized: Boolean(finalized.data),
@@ -113,7 +133,10 @@ export function useTegPool() {
 
   async function write(args: Parameters<typeof writeContractAsync>[0]) {
     const hash = await writeContractAsync({ ...args, chainId } as Parameters<typeof writeContractAsync>[0]);
-    if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
+    if (publicClient) {
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("transaction reverted");
+    }
     return hash;
   }
 
@@ -161,12 +184,23 @@ export function useTegPool() {
       switchNetwork: () => switchChainAsync({ chainId }),
       mintTestUsdt: () =>
         write({ abi: mockUsdtMintAbi, address: usdt!, functionName: "mint", args: [address!, depositWei * 10n] }),
-      approve: () =>
-        write({ abi: erc20Abi, address: usdt!, functionName: "approve", args: [pool!, depositWei] }),
-      join: () => write({ abi: tegPoolAbi, address: pool!, functionName: "join" }),
-      withdrawDeposit: () => write({ abi: tegPoolAbi, address: pool!, functionName: "withdrawDeposit" }),
+      approve: async () => {
+        await write({ abi: erc20Abi, address: usdt!, functionName: "approve", args: [pool!, depositWei] });
+        setOptimistic((o) => ({ ...o, approved: true }));
+      },
+      join: async () => {
+        await write({ abi: tegPoolAbi, address: pool!, functionName: "join" });
+        setOptimistic((o) => ({ ...o, joined: true, approved: undefined })); // join consumes the allowance
+      },
+      withdrawDeposit: async () => {
+        await write({ abi: tegPoolAbi, address: pool!, functionName: "withdrawDeposit" });
+        setOptimistic((o) => ({ ...o, joined: false }));
+      },
       claimPrize: () => write({ abi: tegPoolAbi, address: pool!, functionName: "claimPrize" }),
-      emergencyUserWithdraw: () => write({ abi: tegPoolAbi, address: pool!, functionName: "emergencyUserWithdraw" }),
+      emergencyUserWithdraw: async () => {
+        await write({ abi: tegPoolAbi, address: pool!, functionName: "emergencyUserWithdraw" });
+        setOptimistic((o) => ({ ...o, joined: false }));
+      },
     },
     refetchAll,
   };
