@@ -154,3 +154,51 @@ describe("occupy (conquest-move choice)", () => {
     expect(() => applyAction(s, { type: "occupy", armies: 1 })).toThrow(/no occupation/i);
   });
 });
+
+describe("forced trade (max 5 cards)", () => {
+  function reinforceWithCards(hand: GameState["players"][number]["cards"]): GameState {
+    const s = freshReinforceState();
+    const players = s.players.map((p, i) => (i === 0 ? { ...p, cards: hand } : p));
+    // pendingReinforcements must be 0 so endReinforce's only blocker is the forced trade.
+    return { ...s, players, pendingReinforcements: 0 };
+  }
+
+  test("endReinforce is blocked with 5+ cards and a valid set", () => {
+    const hand = [
+      { id: "a", territoryId: "n1", symbol: "globo" as const },
+      { id: "b", territoryId: "n2", symbol: "globo" as const },
+      { id: "c", territoryId: "n3", symbol: "globo" as const },
+      { id: "d", territoryId: "s1", symbol: "canon" as const },
+      { id: "e", territoryId: "s2", symbol: "barco" as const },
+    ];
+    const s = reinforceWithCards(hand);
+    expect(() => applyAction(s, { type: "endReinforce" })).toThrow(/trade/i);
+  });
+
+  test("endReinforce is allowed with fewer than 5 cards and no valid set", () => {
+    // With only 3 non-joker symbols (globo/canon/barco), 5+ cards always contain a valid set
+    // (pigeonhole: ≥3 of one symbol, or at least one globo+canon+barco trio).
+    // Test the no-set branch with 4 cards using only 2 symbols (no trio possible).
+    const hand = [
+      { id: "a", territoryId: "n1", symbol: "globo" as const },
+      { id: "b", territoryId: "n2", symbol: "globo" as const },
+      { id: "c", territoryId: "n3", symbol: "canon" as const },
+      { id: "d", territoryId: "s1", symbol: "canon" as const },
+    ];
+    // 2 globo + 2 canon: no trio (2+1 or 1+2 only) and no 3-diff → no valid set.
+    const s = reinforceWithCards(hand);
+    const next = applyAction(s, { type: "endReinforce" });
+    expect(next.phase).toBe("attack");
+  });
+
+  test("endReinforce is allowed with fewer than 5 cards even with a set", () => {
+    const hand = [
+      { id: "a", territoryId: "n1", symbol: "globo" as const },
+      { id: "b", territoryId: "n2", symbol: "globo" as const },
+      { id: "c", territoryId: "n3", symbol: "globo" as const },
+    ];
+    const s = reinforceWithCards(hand);
+    const next = applyAction(s, { type: "endReinforce" });
+    expect(next.phase).toBe("attack");
+  });
+});

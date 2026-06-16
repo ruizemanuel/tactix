@@ -2,7 +2,7 @@ import { resolveAttack } from "./combat.js";
 import { fortify } from "./fortify.js";
 import { checkWin } from "./objectives.js";
 import { ownedTerritoryIds, placeReinforcement, reinforcementsFor } from "./reinforce.js";
-import { tradeCards } from "./cards.js";
+import { hasTradeableSet, tradeCards } from "./cards.js";
 import type { Action, GameState } from "./types.js";
 
 function withEliminationFlags(state: GameState): GameState {
@@ -64,6 +64,10 @@ export function applyAction(state: GameState, action: Action): GameState {
     case "endReinforce": {
       if (state.phase !== "reinforce") throw new Error("Not in the reinforce phase");
       if (state.pendingReinforcements !== 0) throw new Error("Must place all reinforcements first");
+      const cur = state.players[state.currentPlayerIndex]!;
+      if (cur.cards.length >= 5 && hasTradeableSet(cur.cards)) {
+        throw new Error("Must trade a card set before ending reinforce (5+ cards in hand)");
+      }
       return { ...state, phase: "attack" };
     }
 
