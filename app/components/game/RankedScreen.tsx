@@ -20,7 +20,7 @@ export function RankedScreen() {
   const p = useTegPool();
   const { signMessageAsync } = useSignMessage();
   const store = useGame();
-  const { state, ranked } = store;
+  const { state, ranked, rankedError } = store;
 
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -115,6 +115,20 @@ export function RankedScreen() {
       </header>
 
       <GameView interactive={status === "playing"} />
+
+      {rankedError && status === "playing" && (
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-ai)] bg-white/[.03] px-3 py-2">
+          <p className="text-sm text-[var(--color-text)]">{t("ranked.retryPrompt")}</p>
+          <button
+            type="button"
+            disabled={store.aiThinking}
+            onClick={() => void store.retryRanked()}
+            className="shrink-0 rounded-lg bg-[var(--color-you)] px-3 py-[6px] text-xs font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {t("ranked.retry")}
+          </button>
+        </div>
+      )}
 
       {status === "submitting" && <p className="text-sm text-[var(--color-signal)]">{t("ranked.submitting")}</p>}
 
