@@ -127,7 +127,7 @@ export function RankedScreen() {
             type="button"
             disabled={store.aiThinking}
             onClick={() => void store.retryRanked()}
-            className="shrink-0 rounded-lg bg-[var(--color-you)] px-3 py-[6px] text-xs font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="shrink-0 cursor-pointer rounded-lg bg-[var(--color-you)] px-3 py-[6px] text-xs font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t("ranked.retry")}
           </button>
@@ -142,7 +142,7 @@ export function RankedScreen() {
           <button
             type="button"
             onClick={() => void signAndFinalize()}
-            className="rounded-xl bg-[var(--color-you)] px-4 py-2 text-sm font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110"
+            className="cursor-pointer rounded-xl bg-[var(--color-you)] px-4 py-2 text-sm font-bold uppercase tracking-[.06em] text-black transition hover:brightness-110"
           >
             {t("ranked.signAndSubmit")}
           </button>

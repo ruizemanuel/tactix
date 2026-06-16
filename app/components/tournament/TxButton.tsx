@@ -51,7 +51,7 @@ export function TxButton({
         disabled={disabled || busy}
         onClick={handle}
         className={cn(
-          "w-full rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-[.06em] transition",
+          "w-full cursor-pointer rounded-xl px-4 py-3 text-sm font-bold uppercase tracking-[.06em] transition",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-signal)]",
           palette,

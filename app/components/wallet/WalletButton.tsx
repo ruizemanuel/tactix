@@ -39,7 +39,7 @@ export function WalletButton() {
   }, [address, chainId]);
 
   const pill = cn(
-    "inline-flex items-center gap-2 rounded-lg border border-[var(--color-hairline-2)] px-3 py-[6px]",
+    "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--color-hairline-2)] px-3 py-[6px]",
     "text-[11px] font-bold uppercase tracking-[.08em] transition-colors",
     "text-[var(--color-text)] hover:bg-white/10",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-signal)]",
