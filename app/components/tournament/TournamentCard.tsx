@@ -7,6 +7,7 @@ import { useTegPool } from "@/hooks/useTegPool.js";
 import { TxButton } from "./TxButton.js";
 import { MintTestUsdtButton } from "./MintTestUsdtButton.js";
 import { formatUsd } from "@/lib/format.js";
+import { track } from "@/lib/analytics/events.js";
 
 const usd = formatUsd;
 
@@ -48,7 +49,17 @@ export function TournamentCard() {
       case "approve":
         return <TxButton label={t("cta.approve", { amount: depositStr })} onRun={a.approve} onDone={p.refetchAll} />;
       case "join":
-        return <TxButton label={t("cta.join", { amount: depositStr })} onRun={a.join} onDone={p.refetchAll} />;
+        return (
+          <TxButton
+            label={t("cta.join", { amount: depositStr })}
+            onRun={a.join}
+            onDone={() => {
+              track("pool_joined");
+              p.refetchAll();
+            }}
+            onError={() => track("pool_join_failed")}
+          />
+        );
       case "joinClosing":
         return <p className="text-sm text-[var(--color-signal)]">{t("tournament.joinClosing")}</p>;
       case "joinedWaiting": {
@@ -68,9 +79,28 @@ export function TournamentCard() {
         );
       }
       case "claim":
-        return <TxButton variant="prize" label={t("cta.claim", { amount: usd(p.prizeAmount) })} onRun={a.claimPrize} onDone={p.refetchAll} />;
+        return (
+          <TxButton
+            variant="prize"
+            label={t("cta.claim", { amount: usd(p.prizeAmount) })}
+            onRun={a.claimPrize}
+            onDone={() => {
+              track("prize_claimed");
+              p.refetchAll();
+            }}
+          />
+        );
       case "withdraw":
-        return <TxButton label={t("cta.withdraw")} onRun={a.withdrawDeposit} onDone={p.refetchAll} />;
+        return (
+          <TxButton
+            label={t("cta.withdraw")}
+            onRun={a.withdrawDeposit}
+            onDone={() => {
+              track("deposit_withdrawn");
+              p.refetchAll();
+            }}
+          />
+        );
       case "emergencyWithdraw":
         return <TxButton variant="ghost" label={t("cta.emergencyWithdraw")} onRun={a.emergencyUserWithdraw} onDone={p.refetchAll} />;
       case "paused":

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { isMiniPay } from "@/lib/web3/minipay.js";
+import { track } from "@/lib/analytics/events.js";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { cn } from "@/lib/utils.js";
 
@@ -12,7 +13,7 @@ function truncate(addr: string): string {
 
 export function WalletButton() {
   const { t } = useI18n();
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
 
@@ -23,6 +24,19 @@ export function WalletButton() {
     const injected = connectors.find((c) => c.id === "injected") ?? connectors[0];
     if (injected) connect({ connector: injected });
   }, [address, connect, connectors]);
+
+  // Fire wallet_connected once per connection (anonymous — no address sent).
+  const connectedRef = useRef(false);
+  useEffect(() => {
+    if (address && !connectedRef.current) {
+      connectedRef.current = true;
+      track("wallet_connected", { is_minipay: isMiniPay(), chain_id: chainId ?? 0 });
+    } else if (!address) {
+      connectedRef.current = false;
+    }
+    // chainId is a dep only so chain_id reflects the value at fire-time; the ref guard
+    // means a chain switch while already connected does NOT re-fire the event.
+  }, [address, chainId]);
 
   const pill = cn(
     "inline-flex items-center gap-2 rounded-lg border border-[var(--color-hairline-2)] px-3 py-[6px]",

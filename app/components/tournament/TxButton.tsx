@@ -8,12 +8,14 @@ export function TxButton({
   label,
   onRun,
   onDone,
+  onError,
   disabled,
   variant = "primary",
 }: {
   label: string;
   onRun: () => Promise<unknown>;
   onDone?: () => void;
+  onError?: () => void;
   disabled?: boolean;
   variant?: "primary" | "prize" | "ghost";
 }) {
@@ -29,6 +31,7 @@ export function TxButton({
       onDone?.();
     } catch {
       setError(true);
+      onError?.();
     } finally {
       setBusy(false);
     }

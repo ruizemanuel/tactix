@@ -44,4 +44,16 @@ describe("TxButton lifecycle", () => {
     await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
     expect(screen.queryByText(/transaction failed/i)).not.toBeInTheDocument();
   });
+
+  it("calls onError on failure", async () => {
+    const onRun = vi.fn().mockRejectedValue(new Error("revert"));
+    const onError = vi.fn();
+    render(
+      <I18nProvider initialLocale="en">
+        <TxButton label="Go" onRun={onRun} onError={onError} />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /go/i }));
+    await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
+  });
 });

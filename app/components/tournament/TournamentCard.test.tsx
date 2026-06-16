@@ -4,6 +4,7 @@ import { I18nProvider } from "@/lib/i18n/I18nProvider.js";
 
 const hook = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
 vi.mock("@/hooks/useTegPool.js", () => ({ useTegPool: () => hook.value }));
+vi.mock("@/lib/analytics/events.js", () => ({ track: vi.fn() }));
 
 import { TournamentCard } from "./TournamentCard.js";
 

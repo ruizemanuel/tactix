@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   account: { address: undefined as string | undefined, chainId: 11142220 },
   connect: vi.fn(),
   disconnect: vi.fn(),
+  track: vi.fn(),
 }));
 
 vi.mock("wagmi", () => ({
@@ -15,6 +16,7 @@ vi.mock("wagmi", () => ({
 }));
 
 vi.mock("@/lib/web3/minipay.js", () => ({ isMiniPay: () => false }));
+vi.mock("@/lib/analytics/events.js", () => ({ track: mocks.track }));
 
 import { WalletButton } from "./WalletButton.js";
 
@@ -29,6 +31,7 @@ function renderIt() {
 describe("WalletButton", () => {
   beforeEach(() => {
     mocks.account.address = undefined;
+    mocks.track.mockClear();
   });
 
   it("shows Connect when disconnected", () => {
@@ -40,5 +43,11 @@ describe("WalletButton", () => {
     mocks.account.address = "0x1234567890abcdef1234567890abcdef12345678";
     renderIt();
     expect(screen.getByText(/0x1234…5678/i)).toBeInTheDocument();
+  });
+
+  it("fires wallet_connected with is_minipay + chain_id when an address is present", () => {
+    mocks.account.address = "0x1234567890abcdef1234567890abcdef12345678";
+    renderIt();
+    expect(mocks.track).toHaveBeenCalledWith("wallet_connected", { is_minipay: false, chain_id: 11142220 });
   });
 });
