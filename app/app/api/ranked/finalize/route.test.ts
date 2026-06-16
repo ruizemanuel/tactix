@@ -7,6 +7,7 @@ const getOpenGame = vi.fn();
 const markScored = vi.fn();
 const replayGame = vi.fn();
 const computeScore = vi.fn();
+const readContract = vi.fn();
 
 vi.mock("@/lib/db/rankedGames.js", () => ({
   getOpenGame: (...a: unknown[]) => getOpenGame(...a),
@@ -15,6 +16,9 @@ vi.mock("@/lib/db/rankedGames.js", () => ({
 vi.mock("@teg/engine", () => ({
   replayGame: (...a: unknown[]) => replayGame(...a),
   computeScore: (...a: unknown[]) => computeScore(...a),
+}));
+vi.mock("@/lib/web3/server.js", () => ({
+  getServerPublicClient: () => ({ readContract: (...a: unknown[]) => readContract(...a) }),
 }));
 
 import { POST } from "./route.js";
@@ -42,6 +46,8 @@ beforeEach(() => {
   markScored.mockReset();
   replayGame.mockReset();
   computeScore.mockReset();
+  readContract.mockReset();
+  readContract.mockResolvedValue(false); // emergencyActive = false by default
 });
 
 describe("POST /api/ranked/finalize", () => {
@@ -93,5 +99,34 @@ describe("POST /api/ranked/finalize", () => {
     markScored.mockResolvedValue(false);
     const res = await POST(req({ gameId: "g", signature: await sign(PLAYER) }));
     expect(res.status).toBe(409);
+  });
+
+  it("409 when the tournament has ended (endTime passed)", async () => {
+    getOpenGame.mockResolvedValue(openGame({ endTime: Math.floor(Date.now() / 1000) - 3600 }));
+    const res = await POST(req({ gameId: "g", signature: await sign(PLAYER) }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "tournament ended" });
+    expect(markScored).not.toHaveBeenCalled();
+  });
+
+  it("409 when an emergency is active", async () => {
+    getOpenGame.mockResolvedValue(openGame({ endTime: Math.floor(Date.now() / 1000) + 3600 }));
+    readContract.mockResolvedValue(true);
+    const res = await POST(req({ gameId: "g", signature: await sign(PLAYER) }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "emergency active" });
+    expect(markScored).not.toHaveBeenCalled();
+  });
+
+  it("proceeds (fail-open) when the emergencyActive read throws", async () => {
+    const breakdown = { won: true, continents: 1, territories: 18, turnsUsed: 7 };
+    getOpenGame.mockResolvedValue(openGame({ endTime: Math.floor(Date.now() / 1000) + 3600 }));
+    readContract.mockRejectedValue(new Error("rpc down"));
+    replayGame.mockReturnValue({ ok: true, finalState: { winnerId: "you" }, breakdown });
+    computeScore.mockReturnValue(1076);
+    markScored.mockResolvedValue(true);
+    const res = await POST(req({ gameId: "g", signature: await sign(PLAYER) }));
+    expect(res.status).toBe(200);
+    expect(markScored).toHaveBeenCalled();
   });
 });
