@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
     })) as boolean;
   } catch (e) {
     console.warn("[ranked/finalize] emergencyActive read failed; proceeding (fail-open)", e);
-    emergencyActive = false;
   }
   if (emergencyActive) return NextResponse.json({ error: "emergency active" }, { status: 409 });
 

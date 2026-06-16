@@ -109,6 +109,14 @@ describe("POST /api/ranked/finalize", () => {
     expect(markScored).not.toHaveBeenCalled();
   });
 
+  it("409 at the exact endTime boundary (now === endTime)", async () => {
+    getOpenGame.mockResolvedValue(openGame({ endTime: Math.floor(Date.now() / 1000) }));
+    const res = await POST(req({ gameId: "g", signature: await sign(PLAYER) }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "tournament ended" });
+    expect(markScored).not.toHaveBeenCalled();
+  });
+
   it("409 when an emergency is active", async () => {
     getOpenGame.mockResolvedValue(openGame({ endTime: Math.floor(Date.now() / 1000) + 3600 }));
     readContract.mockResolvedValue(true);
