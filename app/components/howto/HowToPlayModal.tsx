@@ -82,6 +82,7 @@ export function HowToPlayModal({
       if (focusables.length === 0) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
+      if (!first || !last) return;
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -196,6 +197,10 @@ export function HowToPlayModal({
               <p>{t("howto.continents.map")}</p>
               <p>{t("howto.continents.reinforce")}</p>
               <ul className="mt-1 space-y-1">
+                <li className="flex justify-between border-b border-[var(--color-hairline-2)] py-1 text-[11px] font-bold uppercase tracking-[.08em] text-[var(--color-muted)]">
+                  <span>{t("howto.continents.nameLabel")}</span>
+                  <span>{t("howto.continents.bonusLabel")}</span>
+                </li>
                 {CONTINENTS.map((c) => (
                   <li key={c.key} className="flex justify-between border-b border-[var(--color-hairline-2)] py-1">
                     <span className="text-[var(--color-text)]">{t(c.key)}</span>
