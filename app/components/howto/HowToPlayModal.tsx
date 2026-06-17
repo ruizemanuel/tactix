@@ -54,6 +54,11 @@ export function HowToPlayModal({
   const closeRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
 
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -65,7 +70,7 @@ export function HowToPlayModal({
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -92,7 +97,7 @@ export function HowToPlayModal({
       body.style.overflow = prevOverflow;
       previouslyFocused?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
