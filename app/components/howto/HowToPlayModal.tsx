@@ -28,12 +28,24 @@ const OBJECTIVE_KEYS = [
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details className="border-t border-[var(--color-hairline-2)] py-2">
+    <details className="group border-t border-[var(--color-hairline-2)] py-2">
       <summary
-        className="cursor-pointer list-none py-1 font-bold text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-signal)]"
+        className="flex cursor-pointer items-center justify-between gap-2 list-none py-1 font-bold text-[var(--color-text)] marker:hidden [&::-webkit-details-marker]:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-signal)]"
         style={{ fontFamily: "var(--font-display-cond)" }}
       >
-        {title}
+        <span>{title}</span>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-4 w-4 shrink-0 text-[var(--color-muted)] transition-transform duration-200 group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </summary>
       <div className="mt-1 space-y-2 text-[13px] leading-relaxed text-[var(--color-muted)]">
         {children}
@@ -115,7 +127,7 @@ export function HowToPlayModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative flex max-h-[88vh] w-full max-w-md flex-col rounded-t-2xl border border-[var(--color-hairline-2)] bg-[var(--color-surface)] sm:max-h-[85vh] sm:rounded-2xl"
+        className="relative flex max-h-[88vh] w-full max-w-md flex-col rounded-t-2xl border border-[var(--color-hairline-2)] bg-[var(--color-bg-2)] shadow-2xl sm:max-h-[85vh] sm:rounded-2xl"
       >
         <header className="flex items-center justify-between border-b border-[var(--color-hairline-2)] px-5 py-3">
           <h2
