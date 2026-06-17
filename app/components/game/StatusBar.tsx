@@ -23,6 +23,26 @@ function TargetIcon() {
   );
 }
 
+/** Small stacked-cards glyph for the opponent's hand count */
+function CardStackIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="9" y="5" width="9" height="13" rx="1.5" />
+      <path d="M6 8 V17.5 A1.5 1.5 0 0 0 7.5 19 H14" />
+    </svg>
+  );
+}
+
 export function StatusBar({ state, aiThinking }: { state: GameState; aiThinking: boolean }) {
   const { t } = useI18n();
 
@@ -48,6 +68,7 @@ export function StatusBar({ state, aiThinking }: { state: GameState; aiThinking:
   const current = state.players[state.currentPlayerIndex]!;
   const isYou = current.id === "you";
   const name = t(isYou ? "game.you" : "game.ai");
+  const rivalCardCount = state.players.find((p) => p.id !== "you")?.cards.length ?? 0;
 
   return (
     <div className="rounded-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-3 py-[11px] flex flex-col gap-[9px]">
@@ -119,20 +140,31 @@ export function StatusBar({ state, aiThinking }: { state: GameState; aiThinking:
         </div>
       </div>
 
-      {/* Objective line */}
-      <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-        <TargetIcon />
-        <span>
-          {t("status.yourObjective", {
-            // Always the human's ("you") objective — never the current player's
-            // (else the AI's secret objective would show during its turn).
-            obj: (() => {
-              const you = state.players.find((pl) => pl.id === "you");
-              const objectiveId = you?.objectiveId ?? "";
-              const obj = state.objectives[objectiveId];
-              return obj?.description || objectiveId;
-            })(),
-          })}
+      {/* Objective line + opponent card count */}
+      <div className="flex items-center justify-between gap-2 text-xs text-[var(--color-muted)]">
+        <div className="flex min-w-0 items-center gap-2">
+          <TargetIcon />
+          <span className="truncate">
+            {t("status.yourObjective", {
+              // Always the human's ("you") objective — never the current player's
+              // (else the AI's secret objective would show during its turn).
+              obj: (() => {
+                const you = state.players.find((pl) => pl.id === "you");
+                const objectiveId = you?.objectiveId ?? "";
+                const obj = state.objectives[objectiveId];
+                return obj?.description || objectiveId;
+              })(),
+            })}
+          </span>
+        </div>
+        <span
+          className="flex flex-none items-center gap-1"
+          aria-label={t("card.rivalCards", { n: rivalCardCount })}
+        >
+          <CardStackIcon />
+          <span className="text-[11px]" style={{ fontFamily: "var(--font-mono)" }}>
+            {rivalCardCount}
+          </span>
         </span>
       </div>
     </div>
