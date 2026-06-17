@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { dictionaries } from "./dictionaries.js";
 
-const isFeatureKey = (k: string) => k.startsWith("howto.") || k.startsWith("continent.");
+const isFeatureKey = (k: string) =>
+  k.startsWith("howto.") || k.startsWith("continent.") || k.startsWith("card.");
 
 describe("dictionaries — how-to-play feature keys", () => {
   it("defines exactly the same howto.* / continent.* keys in both locales", () => {
@@ -27,6 +28,8 @@ describe("dictionaries — how-to-play feature keys", () => {
         "howto.continents.title", "howto.score.title",
         "howto.objectives.o1", "howto.objectives.o7",
         "continent.northAmerica", "continent.oceania",
+        "card.hand", "card.rivalCards",
+        "card.suit.globo", "card.suit.canon", "card.suit.barco", "card.suit.joker",
       ]) {
         expect(dictionaries[locale][k], `${locale}:${k}`).toBeTruthy();
       }

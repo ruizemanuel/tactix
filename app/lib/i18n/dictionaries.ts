@@ -129,6 +129,12 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "howto.score.turn": "−2 per turn used (rewards winning fast)",
     "howto.score.floor": "(never below 0)",
     "howto.score.leaderboard": "Your best score rules the leaderboard; first place takes the tournament prize.",
+    "card.hand": "Your cards",
+    "card.rivalCards": "AI cards: {n}",
+    "card.suit.globo": "Balloon",
+    "card.suit.canon": "Cannon",
+    "card.suit.barco": "Ship",
+    "card.suit.joker": "Joker",
   },
   es: {
     "app.title": "TACTIX",
@@ -255,6 +261,12 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "howto.score.turn": "−2 por cada turno usado (premia ganar rápido)",
     "howto.score.floor": "(nunca baja de 0)",
     "howto.score.leaderboard": "Tu mejor score manda en la tabla; el primero se lleva el premio del torneo.",
+    "card.hand": "Tus cartas",
+    "card.rivalCards": "Cartas de la IA: {n}",
+    "card.suit.globo": "Globo",
+    "card.suit.canon": "Cañón",
+    "card.suit.barco": "Barco",
+    "card.suit.joker": "Comodín",
   },
 };
 
