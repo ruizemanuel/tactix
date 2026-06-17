@@ -14,7 +14,8 @@ export type AnalyticsEvent =
   | "ranked_finished"
   | "sign_rejected"
   | "score_finalized"
-  | "practice_started";
+  | "practice_started"
+  | "how_to_play_opened";
 
 type Props = Record<string, string | number | boolean>;
 
