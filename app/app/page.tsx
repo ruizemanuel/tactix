@@ -6,6 +6,7 @@ import { WalletButton } from "@/components/wallet/WalletButton.js";
 import { TournamentCard } from "@/components/tournament/TournamentCard.js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher.js";
 import { Leaderboard } from "@/components/leaderboard/Leaderboard.js";
+import { HowToPlayButton } from "@/components/howto/HowToPlayButton.js";
 
 export default function Home() {
   const { t } = useI18n();
@@ -31,6 +32,8 @@ export default function Home() {
       >
         {t("lobby.play")}
       </Link>
+
+      <HowToPlayButton variant="lobby" />
 
       <Leaderboard />
 

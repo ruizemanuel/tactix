@@ -6,6 +6,7 @@ import { useGame } from "@/lib/game/store.js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher.js";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { GameView } from "@/components/game/GameView.js";
+import { HowToPlayButton } from "@/components/howto/HowToPlayButton.js";
 import { track } from "@/lib/analytics/events.js";
 
 /** The crosshair "X" — used as the final letter of the TACTIX wordmark. */
@@ -102,8 +103,9 @@ export function PlayScreen() {
           </div>
         </div>
 
-        {/* Right: New game button + language switcher */}
+        {/* Right: How to play + New game button + language switcher */}
         <div className="flex items-center gap-2">
+          <HowToPlayButton variant="compact" />
           <button
             type="button"
             onClick={() => { store.newGame(); track("practice_started"); }}
