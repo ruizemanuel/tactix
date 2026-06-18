@@ -29,10 +29,12 @@ export function Hand({ cards, map }: { cards: Card[]; map: GameMap }) {
               key={c.id}
               role="img"
               aria-label={label}
-              className="flex h-16 w-[58px] flex-none flex-col items-center justify-between rounded-lg border border-[var(--color-hairline-2)] bg-[var(--color-surface-2)] px-1 pb-1 pt-[3px]"
+              className="flex h-16 w-[58px] flex-none flex-col items-center rounded-lg border border-[var(--color-hairline-2)] bg-[var(--color-surface-2)] px-1 py-1"
               style={{ borderTop: `2px solid ${isJoker ? "var(--color-signal)" : "var(--color-you)"}` }}
             >
-              <CardSuitIcon symbol={c.symbol} className="mt-1 h-[22px] w-[22px]" />
+              <span className="flex flex-1 items-center justify-center">
+                <CardSuitIcon symbol={c.symbol} className="h-[22px] w-[22px]" />
+              </span>
               <span className="w-full truncate text-center text-[9px] leading-tight text-[var(--color-muted)]">
                 {country}
               </span>
