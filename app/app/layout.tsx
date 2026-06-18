@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   title: "TACTIX — Conquer. Never lose.",
   description:
     "TACTIX — a turn-based war-strategy game inspired by TEG. Conquer the board, never lose your deposit. Play vs AI.",
+  other: {
+    // Talent Protocol / Celo Proof of Ship project ownership verification.
+    "talentapp:project_verification":
+      "d1273cabb3b05a811fbdc6ba7c75239878deb86384a00ea1826174448e2f7d770a88d5e4a832e28f092600c0576c519c4294ef8c0792a1364f5a36acdd4ef0a4",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
