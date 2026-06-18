@@ -29,6 +29,9 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
   const showPanel = interactive && onYourTurn;
   const youPlayer = state.players.find((p) => p.id === "you")!;
   const tradeSet = showPanel && state.phase === "reinforce" ? findTradeableSet(youPlayer.cards) : null;
+  const youAreAttacker = state.lastCombat
+    ? state.territories[state.lastCombat.from]?.ownerId === "you"
+    : false;
 
   function onSelect(territoryId: string) {
     if (!humanTurn || !state) return;
@@ -54,7 +57,7 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
     <>
       <StatusBar state={state} aiThinking={aiThinking} />
       <WorldBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
-      <CombatResult combat={state.lastCombat} />
+      <CombatResult combat={state.lastCombat} youAreAttacker={youAreAttacker} />
       <Hand cards={youPlayer.cards} map={state.map} />
       {showPanel && (
         <ActionPanel
