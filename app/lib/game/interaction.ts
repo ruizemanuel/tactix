@@ -2,7 +2,6 @@ import { neighborsOf, ownedTerritoryIds, type GameState, type PlayerId } from "@
 
 export type Tap =
   | { kind: "select"; territoryId: string | null }
-  | { kind: "place"; territoryId: string }
   | { kind: "attack"; from: string; to: string }
   | { kind: "fortify"; from: string; to: string };
 
@@ -38,7 +37,9 @@ export function selectableTerritories(state: GameState, me: PlayerId, selected: 
 
 /** Translate a tap on `territoryId` into an intent the UI hands to the store. */
 export function resolveTap(state: GameState, me: PlayerId, selected: string | null, territoryId: string): Tap {
-  if (state.phase === "reinforce") return { kind: "place", territoryId };
+  if (state.phase === "reinforce") {
+    return selected === territoryId ? { kind: "select", territoryId: null } : { kind: "select", territoryId };
+  }
 
   if (selected === territoryId) return { kind: "select", territoryId: null }; // toggle off
   if (selected === null) return { kind: "select", territoryId };

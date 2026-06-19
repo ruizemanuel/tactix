@@ -8,12 +8,13 @@ const objectives: Objective[] = [
 ];
 const game = (): GameState => createGame(fixtureMap, ["you", "ai"], objectives, 7);
 
-test("reinforce: your territories are selectable; a tap is a 'place' intent", () => {
+test("reinforce: your territories are selectable; a tap selects (placement is via the panel)", () => {
   const s = game();
   const owned = new Set(ownedTerritoryIds(s, "you"));
   expect(new Set(selectableTerritories(s, "you", null))).toEqual(owned);
-  const tap = resolveTap(s, "you", null, ownedTerritoryIds(s, "you")[0]!);
-  expect(tap).toEqual({ kind: "place", territoryId: ownedTerritoryIds(s, "you")[0]! });
+  const first = ownedTerritoryIds(s, "you")[0]!;
+  expect(resolveTap(s, "you", null, first)).toEqual({ kind: "select", territoryId: first });
+  expect(resolveTap(s, "you", first, first)).toEqual({ kind: "select", territoryId: null });
 });
 
 test("reinforce with 0 pending reinforcements: nothing is selectable (a tap can't dispatch place(0))", () => {

@@ -41,9 +41,6 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
       case "select":
         store.select(tap.territoryId);
         break;
-      case "place":
-        store.place(tap.territoryId, state.pendingReinforcements);
-        break;
       case "attack":
         store.attack(tap.from, tap.to);
         break;
@@ -64,6 +61,8 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
           state={state}
           tradeSet={tradeSet}
           disabled={aiThinking}
+          selected={selected}
+          onPlace={(n) => { if (selected) void store.place(selected, n); }}
           onTradeCards={(ids) => store.tradeCards(ids)}
           onEndReinforce={() => store.endReinforce()}
           onEndAttack={() => store.endAttack()}
