@@ -3,7 +3,7 @@
 import { useGame } from "@/lib/game/store.js";
 import { selectableTerritories, resolveTap } from "@/lib/game/interaction.js";
 import { findTradeableSet } from "@teg/engine";
-import { WorldBoard } from "@/components/board/WorldBoard.js";
+import { ZoomableBoard } from "@/components/board/ZoomableBoard.js";
 import { ActionPanel } from "@/components/game/ActionPanel.js";
 import { StatusBar } from "@/components/game/StatusBar.js";
 import { CombatResult } from "@/components/game/CombatResult.js";
@@ -56,7 +56,7 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
   return (
     <>
       <StatusBar state={state} aiThinking={aiThinking} />
-      <WorldBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
+      <ZoomableBoard state={state} selectable={selectable} selected={selected} onSelect={onSelect} />
       <CombatResult combat={state.lastCombat} youAreAttacker={youAreAttacker} />
       <Hand cards={youPlayer.cards} map={state.map} />
       {showPanel && (
