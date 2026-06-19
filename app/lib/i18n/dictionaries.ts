@@ -138,6 +138,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "dice.attacker": "Attacker",
     "dice.defender": "Defender",
     "board.reset": "Reset view",
+    "reinforce.placeOn": "Place in {country}:",
+    "reinforce.place": "Place {n}",
+    "reinforce.all": "All",
+    "reinforce.decrement": "Fewer armies",
+    "reinforce.increment": "More armies",
   },
   es: {
     "app.title": "TACTIX",
@@ -273,6 +278,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "dice.attacker": "Atacante",
     "dice.defender": "Defensor",
     "board.reset": "Centrar mapa",
+    "reinforce.placeOn": "Colocar en {country}:",
+    "reinforce.place": "Colocar {n}",
+    "reinforce.all": "Todo",
+    "reinforce.decrement": "Menos ejércitos",
+    "reinforce.increment": "Más ejércitos",
   },
 };
 

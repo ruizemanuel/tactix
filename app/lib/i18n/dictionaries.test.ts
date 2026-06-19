@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { dictionaries } from "./dictionaries.js";
 
 const isFeatureKey = (k: string) =>
-  k.startsWith("howto.") || k.startsWith("continent.") || k.startsWith("card.") || k.startsWith("dice.") || k.startsWith("board.");
+  k.startsWith("howto.") || k.startsWith("continent.") || k.startsWith("card.") || k.startsWith("dice.") || k.startsWith("board.") || k.startsWith("reinforce.");
 
 describe("dictionaries — how-to-play feature keys", () => {
   it("defines exactly the same howto.* / continent.* keys in both locales", () => {
@@ -32,6 +32,7 @@ describe("dictionaries — how-to-play feature keys", () => {
         "card.suit.globo", "card.suit.canon", "card.suit.barco", "card.suit.joker",
         "dice.attacker", "dice.defender",
         "board.reset",
+        "reinforce.placeOn", "reinforce.place",
       ]) {
         expect(dictionaries[locale][k], `${locale}:${k}`).toBeTruthy();
       }
