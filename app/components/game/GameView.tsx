@@ -57,18 +57,26 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
       <CombatResult combat={state.lastCombat} youAreAttacker={youAreAttacker} />
       <Hand cards={youPlayer.cards} map={state.map} />
       {showPanel && (
-        <ActionPanel
-          state={state}
-          tradeSet={tradeSet}
-          disabled={aiThinking}
-          selected={selected}
-          onPlace={(n) => { if (selected) void store.place(selected, n); }}
-          onTradeCards={(ids) => store.tradeCards(ids)}
-          onEndReinforce={() => store.endReinforce()}
-          onEndAttack={() => store.endAttack()}
-          onEndTurn={() => void store.endTurn()}
-          onOccupy={(armies) => void store.occupy(armies)}
-        />
+        <>
+          {/* Reserve space so the hand/combat never sit behind the fixed bar. */}
+          <div className="h-44" aria-hidden="true" />
+          <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-3xl px-4 pb-4">
+            <div className="rounded-xl bg-[var(--color-bg)]/95 backdrop-blur-sm">
+              <ActionPanel
+                state={state}
+                tradeSet={tradeSet}
+                disabled={aiThinking}
+                selected={selected}
+                onPlace={(n) => { if (selected) void store.place(selected, n); }}
+                onTradeCards={(ids) => store.tradeCards(ids)}
+                onEndReinforce={() => store.endReinforce()}
+                onEndAttack={() => store.endAttack()}
+                onEndTurn={() => void store.endTurn()}
+                onOccupy={(armies) => void store.occupy(armies)}
+              />
+            </div>
+          </div>
+        </>
       )}
     </>
   );
