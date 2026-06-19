@@ -45,12 +45,9 @@ export function PlayScreen() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-3 p-4">
-      {/* ── Top bar: ← Lobby + TACTIX wordmark + New game + LanguageSwitcher ── */}
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        {/* Left: back-to-lobby + wordmark + tagline */}
-        <div className="flex items-center gap-2">
-          {/* Back-to-lobby — in normal flow (not an absolute overlay) so it never
-              collides with the wordmark on narrow viewports. */}
+      <header className="flex flex-col gap-2">
+        {/* Row 1: back-to-lobby (left) · wordmark + tagline (right) */}
+        <div className="flex items-center justify-between gap-2">
           <Link
             href="/"
             className="rounded-lg border border-[var(--color-hairline-2)] px-3 py-[6px] text-[11px] font-bold uppercase tracking-[.08em] text-[var(--color-text)] hover:bg-white/10"
@@ -58,8 +55,7 @@ export function PlayScreen() {
           >
             {t("lobby.backToLobby")}
           </Link>
-          <div className="flex flex-col gap-[2px]">
-            {/* Wordmark: "TACTI" + crosshair X */}
+          <div className="flex flex-col items-end gap-[2px]">
             <div
               aria-label={t("app.title")}
               className="flex items-center"
@@ -73,7 +69,6 @@ export function PlayScreen() {
               }}
             >
               <span aria-hidden="true">TACTI</span>
-              {/* CrosshairX sized to ~0.92em to match the cap-height of the wordmark */}
               <span
                 style={{
                   display: "inline-flex",
@@ -87,7 +82,6 @@ export function PlayScreen() {
                 <CrosshairX className="w-full h-full" />
               </span>
             </div>
-            {/* Tagline: amber mono uppercase */}
             <p
               className="uppercase"
               style={{
@@ -103,27 +97,29 @@ export function PlayScreen() {
           </div>
         </div>
 
-        {/* Right: How to play + New game button + language switcher */}
-        <div className="flex items-center gap-2">
-          <HowToPlayButton variant="compact" />
-          <button
-            type="button"
-            onClick={() => { store.newGame(); track("practice_started"); }}
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "9.5px",
-              letterSpacing: ".14em",
-              textTransform: "uppercase",
-              padding: "6px 9px",
-              borderRadius: "8px",
-              border: "1px solid var(--color-hairline-2)",
-              background: "var(--color-surface)",
-              color: "var(--color-text)",
-              cursor: "pointer",
-            }}
-          >
-            {t("newGame")}
-          </button>
+        {/* Row 2: how-to + new game (left) · language (right) */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <HowToPlayButton variant="compact" />
+            <button
+              type="button"
+              onClick={() => { store.newGame(); track("practice_started"); }}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "9.5px",
+                letterSpacing: ".14em",
+                textTransform: "uppercase",
+                padding: "6px 9px",
+                borderRadius: "8px",
+                border: "1px solid var(--color-hairline-2)",
+                background: "var(--color-surface)",
+                color: "var(--color-text)",
+                cursor: "pointer",
+              }}
+            >
+              {t("newGame")}
+            </button>
+          </div>
           <LanguageSwitcher />
         </div>
       </header>
