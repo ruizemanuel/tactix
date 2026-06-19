@@ -9,7 +9,10 @@ export type Tap =
 /** Territories the human may tap right now, given phase + current selection. */
 export function selectableTerritories(state: GameState, me: PlayerId, selected: string | null): string[] {
   const owned = ownedTerritoryIds(state, me);
-  if (state.phase === "reinforce") return owned;
+  // Only placeable while reinforcements remain — at 0 pending a tap would
+  // dispatch place(0), which the engine rejects (ranked surfaces it as a
+  // spurious "connection issue"). Returning [] makes such taps no-ops.
+  if (state.phase === "reinforce") return state.pendingReinforcements > 0 ? owned : [];
 
   if (state.phase === "attack") {
     if (selected === null) {

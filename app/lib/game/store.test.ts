@@ -35,6 +35,19 @@ test("place reduces pending and adds armies to an owned territory", () => {
   expect(useGame.getState().state!.territories[owned]!.armies).toBeGreaterThan(1);
 });
 
+test("place with 0 armies is a no-op (no throw, no state change, no network)", () => {
+  useGame.getState().newGame(3);
+  const st = useGame.getState().state!;
+  const terr = ownedTerritoryIds(st, "you")[0]!;
+  const armiesBefore = st.territories[terr]!.armies;
+  const pendingBefore = st.pendingReinforcements;
+  expect(() => useGame.getState().place(terr, 0)).not.toThrow();
+  const after = useGame.getState().state!;
+  expect(after.territories[terr]!.armies).toBe(armiesBefore);
+  expect(after.pendingReinforcements).toBe(pendingBefore);
+  expect(client.sendAction).not.toHaveBeenCalled();
+});
+
 test("ending the human turn runs the AI turn and returns control to you (or ends the game)", async () => {
   const g = useGame.getState();
   // Spend reinforcements, then walk through the phases.

@@ -129,7 +129,9 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     select: (territoryId) => set({ selected: territoryId }),
-    place: (territoryId, armies) => dispatch({ type: "place", territoryId, armies }),
+    // Guard armies<=0: a place(0) is invalid (engine throws) and must never be
+    // dispatched — in ranked it would set rankedError, in practice it would throw.
+    place: (territoryId, armies) => (armies > 0 ? dispatch({ type: "place", territoryId, armies }) : Promise.resolve()),
     tradeCards: (cardIds) => dispatch({ type: "tradeCards", cardIds }),
     endReinforce: () => dispatch({ type: "endReinforce" }),
     attack: (from, to) => dispatch({ type: "attack", from, to }),

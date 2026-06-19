@@ -16,6 +16,11 @@ test("reinforce: your territories are selectable; a tap is a 'place' intent", ()
   expect(tap).toEqual({ kind: "place", territoryId: ownedTerritoryIds(s, "you")[0]! });
 });
 
+test("reinforce with 0 pending reinforcements: nothing is selectable (a tap can't dispatch place(0))", () => {
+  const s = { ...game(), pendingReinforcements: 0 };
+  expect(selectableTerritories(s, "you", null)).toEqual([]);
+});
+
 test("attack with no selection: only your territories with 2+ armies adjacent to an enemy are selectable", () => {
   let s = game();
   // Force a known attack-phase board: you own n3 with 5 armies next to ai's s1.
