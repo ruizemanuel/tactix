@@ -141,10 +141,10 @@ export function StatusBar({ state, aiThinking }: { state: GameState; aiThinking:
       </div>
 
       {/* Objective line + opponent card count */}
-      <div className="flex items-center justify-between gap-2 text-xs text-[var(--color-muted)]">
-        <div className="flex min-w-0 items-center gap-2">
+      <div className="flex items-start justify-between gap-2 text-xs text-[var(--color-muted)]">
+        <div className="flex min-w-0 items-start gap-2">
           <TargetIcon />
-          <span className="truncate">
+          <span className="break-words">
             {t("status.yourObjective", {
               // Always the human's ("you") objective — never the current player's
               // (else the AI's secret objective would show during its turn).

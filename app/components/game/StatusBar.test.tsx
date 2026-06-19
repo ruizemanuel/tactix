@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, render as render2, screen as screen2 } from "@testing-library/react";
 import { I18nProvider } from "@/lib/i18n/I18nProvider.js";
 import { createGame, fixtureMap, type GameState, type Objective } from "@teg/engine";
 import { StatusBar } from "./StatusBar.js";
@@ -39,5 +39,30 @@ describe("StatusBar opponent card count", () => {
       </I18nProvider>,
     );
     expect(screen.queryByLabelText(/AI cards/)).not.toBeInTheDocument();
+  });
+});
+
+const LONG_OBJECTIVE =
+  "Control all of North America and South America plus four more territories anywhere on the map";
+
+describe("StatusBar objective text", () => {
+  it("renders the full objective text without truncation", () => {
+    const base = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+    const you = base.players.find((p) => p.id === "you")!;
+    const state: GameState = {
+      ...base,
+      objectives: {
+        ...base.objectives,
+        [you.objectiveId]: { ...base.objectives[you.objectiveId]!, description: LONG_OBJECTIVE },
+      },
+    };
+    render2(
+      <I18nProvider initialLocale="en">
+        <StatusBar state={state} aiThinking={false} />
+      </I18nProvider>,
+    );
+    const span = screen2.getByText(`Your objective: ${LONG_OBJECTIVE}`);
+    expect(span).toBeInTheDocument();
+    expect(span.className).not.toContain("truncate");
   });
 });
