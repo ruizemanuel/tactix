@@ -27,3 +27,9 @@ test("marks selectable and selected nodes via data attributes", () => {
   expect(screen.getByTestId("node-canada").getAttribute("data-selectable")).toBe("true");
   expect(screen.getByTestId("node-mexico").getAttribute("data-selectable")).toBe("false");
 });
+
+test("uses the left-cropped viewBox (no far-left empty ocean / lone island)", () => {
+  const state = createGame(worldMap, ["you", "ai"], objectives, 7);
+  render(<WorldBoard state={state} selectable={[]} selected={null} onSelect={() => {}} />);
+  expect(screen.getByRole("group", { name: "World board" }).getAttribute("viewBox")).toBe("110 0 890 560");
+});

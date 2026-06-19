@@ -16,3 +16,11 @@ test("each geometry has a non-empty path and a numeric label anchor", () => {
     expect(Number.isFinite(g.labelAt.x) && Number.isFinite(g.labelAt.y)).toBe(true);
   }
 });
+
+test("every territory label anchor stays inside the cropped viewBox (110..1000)", () => {
+  for (const t of worldMap.territories) {
+    const g = WORLD_GEOMETRY[t.id]!;
+    expect(g.labelAt.x, t.id).toBeGreaterThanOrEqual(110);
+    expect(g.labelAt.x, t.id).toBeLessThanOrEqual(1000);
+  }
+});

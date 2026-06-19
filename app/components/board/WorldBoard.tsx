@@ -17,7 +17,7 @@ export function WorldBoard({ state, selectable, selected, onSelect }: BoardProps
 
   return (
     <svg
-      viewBox="0 0 1000 560"
+      viewBox="110 0 890 560"
       className="w-full max-w-4xl mx-auto select-none"
       role="group"
       aria-label="World board"
