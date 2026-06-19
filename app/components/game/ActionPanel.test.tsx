@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { ActionPanel } from "./ActionPanel.js";
 import { I18nProvider } from "@/lib/i18n/I18nProvider.js";
-import { createGame, fixtureMap, type Objective } from "@teg/engine";
+import { createGame, fixtureMap, ownedTerritoryIds, type Objective } from "@teg/engine";
 
 const objectives: Objective[] = [
   { id: "a", kind: "conquer-count", description: "", targetCount: 6 },
@@ -65,4 +65,24 @@ test("the disabled prop disables the action buttons", () => {
   const state = { ...base, phase: "attack" as const };
   renderPanel({ state, disabled: true, onEndReinforce: () => {}, onEndAttack: () => {}, onEndTurn: () => {}, onTradeCards: () => {}, onOccupy: () => {}, tradeSet: null });
   expect(screen.getByRole("button", { name: /Move to fortify/ })).toBeDisabled();
+});
+
+test("reinforce with a selected territory shows the stepper and places the chosen amount", () => {
+  const state = createGame(fixtureMap, ["you", "ai"], objectives, 7);
+  const owned = ownedTerritoryIds(state, "you")[0]!;
+  const onPlace = vi.fn();
+  renderPanel({
+    state,
+    selected: owned,
+    onPlace,
+    onEndReinforce: () => {},
+    onEndAttack: () => {},
+    onEndTurn: () => {},
+    onTradeCards: () => {},
+    onOccupy: () => {},
+    tradeSet: null,
+  });
+  expect(screen.getByTestId("reinforce-stepper")).toBeInTheDocument();
+  fireEvent.click(screen.getByTestId("reinforce-place"));
+  expect(onPlace).toHaveBeenCalledWith(1);
 });

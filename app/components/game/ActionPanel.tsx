@@ -4,12 +4,17 @@ import { useI18n } from "@/lib/i18n/I18nProvider.js";
 import { cn } from "@/lib/utils.js";
 import { tradeBonus } from "@teg/engine";
 import type { GameState } from "@teg/engine";
+import { ReinforceStepper } from "./ReinforceStepper.js";
 
 export interface ActionPanelProps {
   state: GameState;
   /** A valid card set the human can trade, if any. */
   tradeSet: string[] | null;
   onTradeCards: (cardIds: string[]) => void;
+  /** The currently selected territory (reinforce placement target), if any. */
+  selected?: string | null;
+  /** Place `armies` on the selected territory (reinforce). */
+  onPlace?: (armies: number) => void;
   onEndReinforce: () => void;
   onEndAttack: () => void;
   onEndTurn: () => void;
@@ -79,6 +84,8 @@ export function ActionPanel({
   onEndAttack,
   onEndTurn,
   onOccupy,
+  selected,
+  onPlace,
   disabled = false,
 }: ActionPanelProps) {
   const { t } = useI18n();
@@ -104,15 +111,28 @@ export function ActionPanel({
   if (state.phase === "reinforce") {
     const youPlayer = state.players.find((p) => p.id === "you");
     const nextTradeBonus = tradeBonus(youPlayer?.cardTradeIns ?? 0);
+    const selectedName = selected
+      ? state.map.territories.find((tt) => tt.id === selected)?.name ?? selected
+      : null;
     return (
       <div className="flex flex-col gap-[10px]">
-        <p
-          className="text-[12.5px] leading-[1.45] text-[var(--color-muted)]"
-          style={{ fontFamily: "var(--font-body)" }}
-        >
-          {t("prompt.place", { n: state.pendingReinforcements })}
-        </p>
-        <div className="flex gap-[9px]">
+        {selected && onPlace && selectedName ? (
+          <ReinforceStepper
+            key={selected}
+            territoryName={selectedName}
+            max={state.pendingReinforcements}
+            onPlace={onPlace}
+            disabled={disabled}
+          />
+        ) : (
+          <p
+            className="text-[12.5px] leading-[1.45] text-[var(--color-muted)]"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            {t("prompt.place", { n: state.pendingReinforcements })}
+          </p>
+        )}
+        <div className="flex gap-[9px] landscape:flex-col">
           {tradeSet && (
             <Btn variant="signal" disabled={disabled} onClick={() => onTradeCards(tradeSet)} className="flex-none px-[14px]">
               {t("action.tradeCards", { n: nextTradeBonus })}
