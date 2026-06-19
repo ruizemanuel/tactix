@@ -137,6 +137,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "card.suit.joker": "Joker",
     "dice.attacker": "Attacker",
     "dice.defender": "Defender",
+    "board.reset": "Reset view",
   },
   es: {
     "app.title": "TACTIX",
@@ -271,6 +272,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "card.suit.joker": "Comodín",
     "dice.attacker": "Atacante",
     "dice.defender": "Defensor",
+    "board.reset": "Centrar mapa",
   },
 };
 
