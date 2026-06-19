@@ -21,7 +21,7 @@ test("reinforce phase shows the place prompt and an end-reinforce button when pe
   const state = createGame(fixtureMap, ["you", "ai"], objectives, 7);
   const onEndReinforce = vi.fn();
   renderPanel({ state, onEndReinforce, onEndAttack: () => {}, onEndTurn: () => {}, onTradeCards: () => {}, onOccupy: () => {}, tradeSet: null });
-  expect(screen.getByText(/Tap one of your territories/)).toBeInTheDocument();
+  expect(screen.getByText(/Tap a territory to place reinforcements/)).toBeInTheDocument();
   // With pending > 0 at game start, end-reinforce is disabled.
   expect(screen.getByRole("button", { name: /Start attacking/ })).toBeDisabled();
 });
