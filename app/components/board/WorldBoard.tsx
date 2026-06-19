@@ -52,7 +52,8 @@ export function WorldBoard({ state, selectable, selected, onSelect }: BoardProps
         );
       })}
 
-      {selected &&
+      {state.phase !== "reinforce" &&
+        selected &&
         map.territories
           .find((t) => t.id === selected)
           ?.adjacentTo.filter((n) => territories[n]?.ownerId !== selOwner)
@@ -63,6 +64,7 @@ export function WorldBoard({ state, selectable, selected, onSelect }: BoardProps
             return (
               <line
                 key={`fl-${n}`}
+                data-testid="flow-line"
                 x1={pa.x}
                 y1={pa.y}
                 x2={pb.x}

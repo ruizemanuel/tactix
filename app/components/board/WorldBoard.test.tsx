@@ -33,3 +33,14 @@ test("uses the left-cropped viewBox (no far-left empty ocean / lone island)", ()
   render(<WorldBoard state={state} selectable={[]} selected={null} onSelect={() => {}} />);
   expect(screen.getByRole("group", { name: "World board" }).getAttribute("viewBox")).toBe("110 0 890 560");
 });
+
+test("draws adjacency flow lines from the selected territory in attack, but not in reinforce", () => {
+  const base = createGame(worldMap, ["you", "ai"], objectives, 7);
+  const territories = Object.fromEntries(worldMap.territories.map((t) => [t.id, { ownerId: "ai", armies: 1 }]));
+  territories.usa = { ownerId: "you", armies: 5 };
+  const attackState = { ...base, territories, phase: "attack" as const };
+  const { rerender, container } = render(<WorldBoard state={attackState} selectable={[]} selected="usa" onSelect={() => {}} />);
+  expect(container.querySelectorAll('[data-testid="flow-line"]').length).toBeGreaterThan(0);
+  rerender(<WorldBoard state={{ ...attackState, phase: "reinforce" as const }} selectable={[]} selected="usa" onSelect={() => {}} />);
+  expect(container.querySelectorAll('[data-testid="flow-line"]')).toHaveLength(0);
+});
