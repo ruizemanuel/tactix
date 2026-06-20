@@ -60,7 +60,7 @@ export function GameView({ interactive = true }: { interactive?: boolean }) {
         <>
           {/* Reserve space so the hand/combat never sit behind the fixed bar. */}
           <div className="h-44" aria-hidden="true" />
-          <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-3xl px-4 pb-4">
+          <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-3xl px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="rounded-xl bg-[var(--color-bg)]/95 backdrop-blur-sm">
               <ActionPanel
                 state={state}
