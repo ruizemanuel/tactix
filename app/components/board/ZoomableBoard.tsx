@@ -27,7 +27,7 @@ function RecenterIcon() {
 export function ZoomableBoard(props: BoardProps) {
   const { t } = useI18n();
   return (
-    <div className="relative mx-auto aspect-[89/56] w-full max-w-4xl overflow-hidden">
+    <div className="relative mx-auto aspect-[4/3] w-full max-w-4xl overflow-hidden">
       <TransformWrapper
         minScale={1}
         maxScale={4}
