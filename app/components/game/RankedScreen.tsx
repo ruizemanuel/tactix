@@ -121,7 +121,10 @@ export function RankedScreen() {
       <GameView interactive={status === "playing"} />
 
       {rankedError && status === "playing" && (
-        <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-ai)] bg-white/[.03] px-3 py-2">
+        <div
+          role="alert"
+          className="fixed inset-x-0 top-2 z-40 mx-auto flex w-full max-w-3xl items-center justify-between gap-3 rounded-xl border border-[var(--color-ai)] bg-[var(--color-bg)]/95 px-3 py-2 backdrop-blur-sm"
+        >
           <p className="text-sm text-[var(--color-text)]">{t("ranked.retryPrompt")}</p>
           <button
             type="button"
