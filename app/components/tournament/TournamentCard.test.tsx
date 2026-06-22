@@ -100,4 +100,17 @@ describe("TournamentCard CTA", () => {
     expect(screen.getByText(/tournament finished/i)).toBeInTheDocument();
     expect(screen.queryByText(/prize awarded/i)).toBeNull();
   });
+
+  it("FINALIZED + done → no redundant 'nothing left to do' (the finished line covers it)", () => {
+    hook.value = { ...base(), view: { phase: "FINALIZED", cta: "done" }, prizeClaimed: true };
+    renderIt();
+    expect(screen.getByText(/tournament finished/i)).toBeInTheDocument();
+    expect(screen.queryByText(/nothing left to do/i)).toBeNull();
+  });
+
+  it("EMERGENCY + done → still shows 'nothing left to do'", () => {
+    hook.value = { ...base(), view: { phase: "EMERGENCY", cta: "done" } };
+    renderIt();
+    expect(screen.getByText(/nothing left to do/i)).toBeInTheDocument();
+  });
 });

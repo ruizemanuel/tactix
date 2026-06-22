@@ -118,7 +118,12 @@ export function TournamentCard() {
       case "full":
         return <p className="text-sm text-[var(--color-muted)]">{t("tournament.full")}</p>;
       case "done":
-        return <p className="text-sm text-[var(--color-muted)]">{t("tournament.done")}</p>;
+        // On a finished tournament the "Tournament finished" line already conveys
+        // closure, so the generic "nothing left to do" is redundant noise. Keep it
+        // only for the emergency case ("you recovered your deposit").
+        return p.view.phase === "FINALIZED"
+          ? null
+          : <p className="text-sm text-[var(--color-muted)]">{t("tournament.done")}</p>;
       default:
         return null;
     }
