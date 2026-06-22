@@ -127,6 +127,7 @@ export function TournamentCard() {
   function phaseLine() {
     if (p.view.phase === "LOCKED") return t("tournament.phase.locked");
     if (p.view.phase === "ENDED") return t("tournament.phase.ended");
+    if (p.view.phase === "FINALIZED") return t("tournament.phase.finalized");
     if (p.view.phase === "EMERGENCY") return t("tournament.phase.emergency");
     return null;
   }
@@ -144,6 +145,11 @@ export function TournamentCard() {
         </p>
       </div>
       {phaseLine() && <p className="text-sm text-[var(--color-signal)]">{phaseLine()}</p>}
+      {p.view.phase === "FINALIZED" && p.prizeClaimed && p.prizeAmount > 0n && (
+        <p className="text-sm font-semibold text-[var(--color-you)]">
+          {t("tournament.prizeAwarded", { amount: usd(p.prizeAmount) })}
+        </p>
+      )}
       <div>{cta()}</div>
     </div>
   );

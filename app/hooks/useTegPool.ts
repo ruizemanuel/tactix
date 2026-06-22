@@ -178,6 +178,7 @@ export function useTegPool() {
     seedAmount: (seedAmount.data as bigint | undefined) ?? 0n,
     prizeAmount: (prizeAmount.data as bigint | undefined) ?? 0n,
     winner: winnerAddr,
+    prizeClaimed: Boolean(prizeClaimed.data),
     usdtBalance: input.usdtBalance,
     isPending,
     actions: {

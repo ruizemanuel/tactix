@@ -14,6 +14,7 @@ function base() {
     isTestnet: true,
     deposit: 1_000_000n,
     prizeAmount: 11_800_000n,
+    prizeClaimed: false,
     platformFeeBps: 1000,
     participants: 3,
     label: "TACTIX-1",
@@ -84,5 +85,19 @@ describe("TournamentCard CTA", () => {
     hook.value = { ...base(), view: { phase: "ENDED", cta: "joinedWaiting" } };
     renderIt();
     expect(screen.queryByRole("link", { name: /play ranked/i })).toBeNull();
+  });
+
+  it("FINALIZED + prize claimed → 'Tournament finished' + prize awarded", () => {
+    hook.value = { ...base(), view: { phase: "FINALIZED", cta: "none" }, prizeClaimed: true };
+    renderIt();
+    expect(screen.getByText(/tournament finished/i)).toBeInTheDocument();
+    expect(screen.getByText(/prize awarded: 11\.8 usdt/i)).toBeInTheDocument();
+  });
+
+  it("FINALIZED without claim → finished line, no prize-awarded line", () => {
+    hook.value = { ...base(), view: { phase: "FINALIZED", cta: "claim" }, prizeClaimed: false };
+    renderIt();
+    expect(screen.getByText(/tournament finished/i)).toBeInTheDocument();
+    expect(screen.queryByText(/prize awarded/i)).toBeNull();
   });
 });
