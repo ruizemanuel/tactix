@@ -123,7 +123,11 @@ export function WorldBoard({ state, selectable, selected, onSelect }: BoardProps
               fontSize={11}
               fontWeight={700}
               fontFamily="var(--font-mono)"
-              fill="#04130d"
+              fill="#eef5f1"
+              stroke="#04130d"
+              strokeWidth={0.9}
+              strokeLinejoin="round"
+              paintOrder="stroke"
             >
               {ts.armies}
             </text>
