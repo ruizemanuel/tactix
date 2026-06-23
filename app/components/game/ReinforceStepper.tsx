@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider.js";
 
 const STEP_BTN =
-  "h-10 w-10 flex-none rounded-xl border border-[var(--color-hairline-2)] bg-[var(--color-surface-2)] text-lg font-bold text-[var(--color-text)] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-signal)]";
+  "h-10 w-10 flex-none cursor-pointer rounded-xl border border-[var(--color-hairline-2)] bg-[var(--color-surface-2)] text-lg font-bold text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-signal)]";
 
 /**
  * Quantity picker for placing reinforcements into one selected territory.
@@ -67,7 +67,7 @@ export function ReinforceStepper({
           data-testid="reinforce-all"
           disabled={disabled || n >= max}
           onClick={() => setAmount(max)}
-          className="flex-none rounded-xl border border-[var(--color-hairline-2)] bg-[var(--color-surface-2)] px-3 py-2 text-[13px] font-bold uppercase tracking-[.05em] text-[var(--color-text)] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-signal)]"
+          className="flex-none cursor-pointer rounded-xl border border-[var(--color-hairline-2)] bg-[var(--color-surface-2)] px-3 py-2 text-[13px] font-bold uppercase tracking-[.05em] text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-signal)]"
           style={{ fontFamily: "var(--font-display-cond)" }}
         >
           {t("reinforce.all")}
